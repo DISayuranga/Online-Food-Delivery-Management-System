@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - CraveBite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Outfit', sans-serif; }</style>
+</head>
+<body class="bg-gray-50 min-h-screen selection:bg-orange-500 selection:text-white flex flex-col">
+
+<!-- Dynamic Role Navbar -->
+<nav id="cravebite-nav"></nav>
+
+<main class="flex-grow max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 pb-6 border-b border-gray-200">
+        <div>
+            <h1 class="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">My Orders & Tracking</h1>
+            <p class="text-gray-500 text-sm mt-1">Track live food preparation, delivery progress, and past receipts.</p>
+        </div>
+        <button onclick="loadAll()" class="bg-white hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-xl border border-gray-200 text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+            <span>🔄</span> Refresh Status
+        </button>
+    </div>
+
+    <!-- Section 1: Active Orders (Tracking) -->
+    <div class="mb-12">
+        <div class="flex items-center gap-3 mb-4">
+            <h2 class="text-2xl font-black text-gray-900">📍 Active Orders & Real-time Tracking</h2>
+            <span id="active-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-700">0 Active</span>
+        </div>
+        <div id="active-container" class="space-y-4">
+            <p class="text-gray-400 font-medium animate-pulse">Loading active orders...</p>
+        </div>
+    </div>
+
+    <!-- Section 2: Order History -->
+    <div>
+        <div class="flex items-center gap-3 mb-4">
+            <h2 class="text-2xl font-black text-gray-900">🧾 Past Orders History</h2>
+            <span id="history-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700">0 Completed</span>
+        </div>
+        <div id="history-container" class="space-y-4">
+            <p class="text-gray-400 font-medium animate-pulse">Loading order history...</p>
+        </div>
+    </div>
+</main>
+
+<footer class="bg-gray-900 py-8 text-gray-400 mt-20">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs">
+        <p>&copy; 2026 CraveBite Inc. All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="/js/navbar.js"></script>
+<script>
+    const username = localStorage.getItem('username');
+    if (!username) {
+        window.location.href = '/login.html';
+    }
+
+    function formatItemsList(o) {
+        if (o.itemsList && o.itemsList.length > 0) {
+            return `
+                <div class="space-y-1.5 my-2">
+                    ${o.itemsList.map(item => {
+                        let imgTag = item.imageUrl ? `<img src="${item.imageUrl}" class="w-8 h-8 rounded-lg object-cover border border-gray-200 shrink-0">` : `<span class="text-base">🍛</span>`;
+                        return `
+                            <div class="flex items-center justify-between text-xs bg-white p-2 rounded-xl border border-gray-100">
+                                <div class="flex items-center gap-2">
+                                    ${imgTag}
+                                    <span class="font-bold text-gray-800">${item.quantity}x ${item.name}</span>
+                                </div>
+                                <span class="font-bold text-gray-700">${item.price ? 'Rs. ' + Number(item.price).toFixed(2) : ''}</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+        return `<p class="text-gray-700"><strong>Dishes:</strong> ${o.itemsSummary || 'Food items'}</p>`;
+    }
+
+    function loadActiveOrders() {
+        fetch(`http://localhost:8080/api/orders/tracking?username=${encodeURIComponent(username)}`)
+            .then(r => r.json())
+            .then(data => {
+                const container = document.getElementById('active-container');
+                const orders = data.orders || [];
+                document.getElementById('active-badge').innerText = `${orders.length} Active`;
+
+                if (!orders.length) {
+                    container.innerHTML = `
+                        <div class="bg-white p-8 rounded-3xl border border-gray-100 text-center shadow-sm">
+                            <span class="text-4xl block mb-2">🍽️</span>
+                            <h3 class="font-bold text-gray-800 text-base">No active orders right now</h3>
+                            <p class="text-xs text-gray-400 mt-1">Ready for a bite? Explore the <a href="/products-list.html" class="text-orange-500 font-bold underline">Food Menu</a> to order!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = orders.map(o => {
+                    let badgeClass = 'bg-blue-100 text-blue-700';
+                    let progressText = 'Order placed, waiting for kitchen confirmation.';
+                    let canCancel = false;
+
+                    if (o.orderStatus === 'PLACED') {
+                        badgeClass = 'bg-blue-100 text-blue-700';
+                        progressText = 'Order received! Kitchen is about to start preparing.';
+                        canCancel = true;
+                    } else if (o.orderStatus === 'PREPARING') {
+                        badgeClass = 'bg-amber-100 text-amber-700';
+                        progressText = 'Kitchen is now freshly preparing your dishes.';
+                    } else if (o.orderStatus === 'OUT_FOR_DELIVERY') {
+                        badgeClass = 'bg-purple-100 text-purple-700';
+                        progressText = `Order is on the road! Delivery Rider: ${o.riderName || 'Assigned rider'}.`;
+                    }
+
+                    const cancelButton = canCancel ? `
+                        <button onclick="cancelOrder(${o.id})" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold transition border border-red-200">
+                            Cancel Order
+                        </button>
+                    ` : '';
+
+                    return `
+                        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-lg font-black text-gray-900">Order #${o.id}</h3>
+                                        <span class="px-3 py-1 text-xs font-black rounded-full uppercase tracking-wider ${badgeClass}">${o.orderStatus}</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">From: <strong class="text-gray-800">${o.restaurantName}</strong></p>
+                                </div>
+                                <span class="text-xl font-black text-orange-600">Rs. ${(o.totalAmount || 0).toFixed(2)}</span>
+                            </div>
+
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 my-3 text-xs space-y-1">
+                                ${formatItemsList(o)}
+                                <p class="text-gray-700"><strong>Drop-off Address:</strong> ${o.deliveryAddress || 'Standard Delivery'}</p>
+                                <p class="text-orange-600 font-bold mt-1">● ${progressText}</p>
+                            </div>
+
+                            <div class="flex justify-end gap-3 pt-2">
+                                ${cancelButton}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('active-container').innerHTML = `<p class="text-red-500 text-sm">Failed to load active orders.</p>`;
+            });
+    }
+
+    function loadOrderHistory() {
+        fetch(`http://localhost:8080/api/orders/history?username=${encodeURIComponent(username)}`)
+            .then(r => r.json())
+            .then(orders => {
+                const container = document.getElementById('history-container');
+                document.getElementById('history-badge').innerText = `${orders ? orders.length : 0} Past`;
+
+                if (!orders || !orders.length) {
+                    container.innerHTML = `
+                        <div class="bg-white p-8 rounded-3xl border border-gray-100 text-center shadow-sm">
+                            <span class="text-4xl block mb-2">📦</span>
+                            <h3 class="font-bold text-gray-800 text-base">No past orders yet</h3>
+                            <p class="text-xs text-gray-400 mt-1">Your past completed deliveries will be logged here.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = orders.map(o => {
+                    const dateStr = o.orderDate ? new Date(o.orderDate).toLocaleDateString() : '';
+                    let badgeColor = o.orderStatus === 'CANCELLED' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700';
+
+                    return `
+                        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-base font-black text-gray-900">Order #${o.id}</h3>
+                                        <span class="px-2.5 py-0.5 text-xs font-bold rounded-full ${badgeColor}">${o.orderStatus}</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-0.5">${o.restaurantName} • ${dateStr}</p>
+                                </div>
+                                <span class="text-lg font-black text-gray-900">Rs. ${(o.totalAmount || 0).toFixed(2)}</span>
+                            </div>
+                            <div class="my-2">${formatItemsList(o)}</div>
+                            ${o.orderStatus === 'DELIVERED' ? `
+                                <div class="mt-3 pt-3 border-t border-gray-50 flex justify-end">
+                                    <a href="/submit-review.html" class="text-xs font-bold text-orange-500 hover:text-orange-600 transition flex items-center gap-1">
+                                        ⭐ Rate & Review Dishes →
+                                    </a>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('');
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('history-container').innerHTML = `<p class="text-red-500 text-sm">Failed to load order history.</p>`;
+            });
+    }
+
+    function cancelOrder(orderId) {
+        if (!confirm('Are you sure you want to cancel this order?')) return;
+        fetch(`http://localhost:8080/api/orders/cancel/${orderId}?username=${encodeURIComponent(username)}`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Order cancelled successfully.');
+                    loadAll();
+                } else {
+                    alert(data.error || 'Cannot cancel order once preparation has started.');
+                }
+            })
+            .catch(err => alert('Server connection error.'));
+    }
+
+    function loadAll() {
+        loadActiveOrders();
+        loadOrderHistory();
+    }
+
+    loadAll();
+</script>
+</body>
+</html>

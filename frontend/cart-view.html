@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart - CraveBite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen selection:bg-orange-500 selection:text-white">
+
+<!-- Dynamic Navbar -->
+<nav id="cravebite-nav"></nav>
+
+<div class="max-w-6xl mx-auto mt-12 px-4 sm:px-6 lg:px-8 pb-24 grid grid-cols-1 lg:grid-cols-3 gap-12">
+    <!-- Cart Items Section -->
+    <div class="lg:col-span-2">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-4xl font-black text-gray-900 tracking-tight">Your Cart</h1>
+            <button onclick="clearCart()" class="text-sm font-bold text-red-500 hover:text-red-600 transition underline underline-offset-4">
+                Clear Cart
+            </button>
+        </div>
+        
+        <div id="cart-items-container">
+            <!-- Items injected by JS -->
+        </div>
+        
+        <div id="empty-cart-message" class="hidden bg-white p-12 rounded-3xl shadow-sm border border-gray-100 text-center">
+            <span class="text-6xl mb-4 block">🛒</span>
+            <h3 class="text-2xl font-bold text-gray-900">Your cart is empty</h3>
+            <p class="text-gray-500 mt-2">Looks like you haven't added anything delicious yet.</p>
+            <a href="/products-list.html" class="inline-block mt-6 bg-orange-500 text-white font-bold px-8 py-3 rounded-full hover:bg-gray-900 transition">Start Browsing</a>
+        </div>
+    </div>
+
+    <!-- Order Summary Section -->
+    <div>
+        <div class="bg-white p-8 rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 sticky top-28">
+            <h3 class="text-2xl font-black text-gray-900 mb-6">Order Summary</h3>
+            <div class="space-y-4 mb-6">
+                <div class="flex justify-between">
+                    <span class="text-gray-500 font-medium">Subtotal</span>
+                    <span class="font-bold text-gray-900" id="summary-subtotal">Rs. 0</span>
+                </div>
+            </div>
+            
+            <div class="flex justify-between items-end mb-8 pt-6 border-t border-gray-100">
+                <span class="text-gray-900 font-bold">Total</span>
+                <span class="text-4xl font-black text-orange-500" id="summary-total">
+                    Rs. 0
+                </span>
+            </div>
+            
+            <button onclick="checkout()" id="checkout-btn" class="block text-center w-full bg-gray-900 hover:bg-orange-500 text-white font-bold py-4 px-4 rounded-xl transition duration-200 shadow-lg">
+                Proceed to Checkout ➔
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const username = localStorage.getItem('username');
+    if (!username) {
+        window.location.href = '/login.html';
+    }
+
+    function loadCart() {
+        fetch(`http://localhost:8080/api/cart?username=${username}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            renderCart(data.cartItems, data.totalValue);
+        });
+    }
+
+    function renderCart(items, totalValue) {
+        const container = document.getElementById('cart-items-container');
+        const emptyMsg = document.getElementById('empty-cart-message');
+        container.innerHTML = '';
+        
+        if (!items || items.length === 0) {
+            emptyMsg.classList.remove('hidden');
+            document.getElementById('summary-subtotal').innerText = 'Rs. 0';
+            document.getElementById('summary-total').innerText = 'Rs. 0';
+            document.getElementById('checkout-btn').classList.add('opacity-50', 'cursor-not-allowed');
+            return;
+        }
+
+        emptyMsg.classList.add('hidden');
+        document.getElementById('summary-subtotal').innerText = `Rs. ${totalValue}`;
+        document.getElementById('summary-total').innerText = `Rs. ${totalValue}`;
+        document.getElementById('checkout-btn').classList.remove('opacity-50', 'cursor-not-allowed');
+
+        items.forEach(item => {
+            let imgHtml = '';
+            if (item.foodItem && item.foodItem.imageUrl) {
+                imgHtml = `<img src="${item.foodItem.imageUrl}" alt="${item.foodItem.name}" class="w-16 h-16 rounded-2xl object-cover border border-gray-100 shadow-sm shrink-0">`;
+            } else {
+                let emoji = '🍛';
+                const type = (item.foodItem && item.foodItem.itemType ? item.foodItem.itemType : '').toUpperCase();
+                if (type.includes('DESSERT')) emoji = '🍰';
+                else if (type.includes('BEVERAGE')) emoji = '🥤';
+                imgHtml = `<div class="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center text-3xl shrink-0">${emoji}</div>`;
+            }
+
+            const div = document.createElement('div');
+            div.className = 'bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group';
+            div.innerHTML = `
+                <div class="flex items-center gap-4">
+                    ${imgHtml}
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">${item.foodItem ? item.foodItem.name : 'Food Item'}</h3>
+                        <p class="text-sm font-medium text-gray-500">Rs. ${item.foodItem ? item.foodItem.basePrice : 0} each</p>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between sm:justify-end space-x-6">
+                    <div class="flex items-center bg-gray-50 rounded-full border border-gray-200 overflow-hidden">
+                        <input type="number" value="${item.quantity}" min="1" class="w-16 text-center border-none bg-transparent focus:ring-0 text-sm font-bold p-2 text-gray-900 outline-none" id="qty-${item.id}">
+                        <button onclick="updateCart(${item.id})" class="bg-gray-200 px-3 py-2 text-xs font-bold text-gray-700 hover:bg-orange-500 hover:text-white transition">Update</button>
+                    </div>
+                    <div class="text-xl font-black text-gray-900 w-24 text-right">Rs. ${(item.totalPrice || 0).toFixed(2)}</div>
+                    <button onclick="removeCart(${item.id})" class="w-10 h-10 flex items-center justify-center rounded-full text-red-400 hover:bg-red-50 hover:text-red-600 transition">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function updateCart(id) {
+        const qty = document.getElementById(`qty-${id}`).value;
+        fetch(`http://localhost:8080/api/cart/update/${id}?username=${username}&quantity=${qty}`, { method: 'POST' })
+        .then(() => loadCart());
+    }
+
+    function removeCart(id) {
+        fetch(`http://localhost:8080/api/cart/remove/${id}?username=${username}`, { method: 'POST' })
+        .then(() => loadCart());
+    }
+
+    function clearCart() {
+        if(confirm('Clear cart?')) {
+            fetch(`http://localhost:8080/api/cart/clear?username=${username}`, { method: 'POST' })
+            .then(() => loadCart());
+        }
+    }
+
+    function checkout() {
+        window.location.href = '/checkout.html';
+    }
+
+    // Load on start
+    loadCart();
+</script>
+<script src="/js/navbar.js"></script>
+</body>
+</html>
