@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Addresses - CraveBite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen selection:bg-orange-500 selection:text-white">
+
+<!-- Dynamic Navbar -->
+<nav id="cravebite-nav"></nav>
+
+<div class="max-w-5xl mx-auto mt-12 px-4 sm:px-6 lg:px-8 pb-24">
+    <div class="flex justify-between items-end mb-10">
+        <div>
+            <h1 class="text-4xl font-black text-gray-900 tracking-tight">Saved Addresses</h1>
+            <p class="text-gray-500 mt-2 text-lg">Manage your delivery locations with polymorphic delivery rules.</p>
+        </div>
+        <a href="/address-form.html" class="bg-gray-900 hover:bg-orange-500 text-white px-6 py-3 rounded-full font-bold transition shadow-lg flex items-center gap-2">
+            <span>+</span> Add Address
+        </a>
+    </div>
+
+    <div id="addressContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="col-span-full py-12 text-center text-gray-400 font-medium">Loading your saved addresses...</div>
+    </div>
+</div>
+
+<script>
+    const username = localStorage.getItem('username');
+    if (!username) {
+        window.location.href = '/login.html';
+    }
+
+    function loadAddresses() {
+        fetch(`http://localhost:8080/api/address?username=${encodeURIComponent(username)}`)
+            .then(res => res.json())
+            .then(addresses => {
+                const container = document.getElementById('addressContainer');
+                if (!addresses || addresses.length === 0) {
+                    container.innerHTML = `
+                        <div class="col-span-full bg-white p-12 rounded-3xl border border-gray-100 text-center">
+                            <span class="text-5xl block mb-4">📍</span>
+                            <h3 class="text-xl font-bold text-gray-900">No addresses saved</h3>
+                            <p class="text-gray-500 mt-2 mb-6">Add a Home or Office address for faster checkout.</p>
+                            <a href="/address-form.html" class="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2.5 rounded-full transition shadow">Add Address</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = addresses.map(addr => {
+                    const isHome = addr.addressType === 'HOME';
+                    const badgeClass = isHome ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600';
+                    const icon = isHome ? '🏡' : '🏢';
+                    const typeLabel = isHome ? 'Home' : 'Office';
+                    const lat = addr.latitude || 6.9271;
+                    const lng = addr.longitude || 79.8612;
+                    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
+                    return `
+                    <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-xl hover:border-orange-200 transition-all">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="px-3 py-1 ${badgeClass} text-xs font-bold uppercase tracking-wider rounded-full flex items-center gap-1">
+                                    <span>${icon}</span> ${typeLabel}
+                                </span>
+                                <span class="text-xs font-mono font-bold text-gray-500 bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-100">
+                                    GPS: ${lat.toFixed(4)}, ${lng.toFixed(4)}
+                                </span>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-1">${addr.streetAddress}</h3>
+                            <p class="text-gray-500 font-medium text-sm mb-3">${addr.city}, ${addr.zipCode}</p>
+                            
+                            <div class="bg-gray-50 rounded-2xl p-4 mb-4 border border-gray-100">
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Instructions</span>
+                                <p class="text-sm font-semibold text-gray-700 italic">"${addr.deliveryInstructions}"</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between gap-2 pt-4 border-t border-gray-50">
+                            <a href="${googleMapsUrl}" target="_blank" class="px-3 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold rounded-xl text-xs transition flex items-center gap-1">
+                                <span>🗺️</span> Google Maps
+                            </a>
+                            <div class="flex items-center gap-2">
+                                <a href="/address-edit.html?id=${addr.id}" class="px-3.5 py-2 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition text-xs">
+                                    Edit
+                                </a>
+                                <button onclick="deleteAddress(${addr.id})" class="px-3.5 py-2 bg-red-50 text-red-600 font-bold rounded-xl hover:bg-red-100 transition text-xs">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+            })
+            .catch(err => {
+                console.error("Failed to load addresses:", err);
+            });
+    }
+
+    function deleteAddress(id) {
+        if (!confirm('Are you sure you want to delete this address?')) return;
+
+        fetch(`http://localhost:8080/api/address/delete/${id}?username=${encodeURIComponent(username)}`, {
+            method: 'POST'
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                loadAddresses();
+            } else {
+                alert(data.error || 'Failed to delete address');
+            }
+        })
+        .catch(err => {
+            alert('Server error deleting address');
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", loadAddresses);
+</script>
+<script src="/js/navbar.js"></script>
+</body>
+</html>

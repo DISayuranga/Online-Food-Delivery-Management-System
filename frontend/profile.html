@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile & Settings - CraveBite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        #address-map { height: 260px; border-radius: 1rem; z-index: 10; }
+        .card-emboss {
+            font-family: 'Courier New', Courier, monospace;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8), 0 -1px 1px rgba(255,255,255,0.2);
+            letter-spacing: 0.18em;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen selection:bg-orange-500 selection:text-white flex flex-col">
+
+<!-- Dynamic Navbar -->
+<nav id="cravebite-nav"></nav>
+
+<!-- Main Container -->
+<main class="flex-grow max-w-7xl mx-auto w-full mt-8 px-4 sm:px-6 lg:px-8 pb-20">
+    
+    <!-- Top Welcome Banner -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 pb-6 border-b border-gray-200">
+        <div>
+            <div class="flex items-center gap-3">
+                <h1 class="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
+                    Welcome, <span id="welcome-name" class="text-orange-500">User</span>! 👋
+                </h1>
+                <span id="role-badge" class="px-3.5 py-1 text-xs font-black rounded-full bg-orange-100 text-orange-700 uppercase tracking-wider">
+                    ROLE
+                </span>
+            </div>
+            <p class="text-gray-500 text-sm mt-1">Manage your account profile, delivery locations with map routing, and payment cards.</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-gray-400 bg-gray-100 px-3 py-1.5 rounded-full" id="display-username">@username</span>
+            <button onclick="craveBiteLogout()" class="text-xs font-bold bg-red-50 text-red-600 px-4 py-2 rounded-full hover:bg-red-100 transition">Log out</button>
+        </div>
+    </div>
+
+    <!-- Customer Navigation Tabs (Only visible for CUSTOMER) -->
+    <div id="customer-tabs-container" class="hidden mb-8">
+        <div class="flex flex-wrap gap-2 border-b border-gray-200 pb-2">
+            <button onclick="switchTab('profile')" id="tab-btn-profile" class="tab-btn px-5 py-3 rounded-2xl font-bold text-sm bg-gray-900 text-white shadow-sm flex items-center gap-2 transition">
+                <span>👤</span> Profile & Settings
+            </button>
+            <button onclick="switchTab('locations')" id="tab-btn-locations" class="tab-btn px-5 py-3 rounded-2xl font-bold text-sm bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 flex items-center gap-2 transition">
+                <span>📍</span> Delivery Locations (CRUD)
+            </button>
+            <button onclick="switchTab('cards')" id="tab-btn-cards" class="tab-btn px-5 py-3 rounded-2xl font-bold text-sm bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 flex items-center gap-2 transition">
+                <span>💳</span> Payment Cards (CRUD)
+            </button>
+        </div>
+    </div>
+
+    <!-- TAB 1: Profile & Settings -->
+    <div id="tab-profile-section" class="space-y-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left Side Quick Links (Role Specific) -->
+            <div class="lg:col-span-1 space-y-4">
+                <!-- Customer Quick Links -->
+                <div id="customer-quick-links" class="hidden space-y-4">
+                    <a href="/order-history.html" class="block bg-white p-5 rounded-3xl shadow-sm border border-gray-100 hover:border-orange-500 hover:shadow-md transition group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🧾</div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 text-base">My Orders & Tracking</h3>
+                                <p class="text-xs text-gray-400">View real-time delivery status</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/cart-view.html" class="block bg-white p-5 rounded-3xl shadow-sm border border-gray-100 hover:border-orange-500 hover:shadow-md transition group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🛒</div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 text-base">My Cart</h3>
+                                <p class="text-xs text-gray-400">Check items and checkout</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/my-reviews.html" class="block bg-white p-5 rounded-3xl shadow-sm border border-gray-100 hover:border-orange-500 hover:shadow-md transition group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-yellow-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">⭐</div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 text-base">My Reviews</h3>
+                                <p class="text-xs text-gray-400">View reviews & ratings given</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Restaurant Quick Links -->
+                <div id="restaurant-quick-links" class="hidden space-y-4">
+                    <a href="/restaurant-orders.html" class="block bg-white p-5 rounded-3xl shadow-sm border border-gray-100 hover:border-orange-500 hover:shadow-md transition group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">👨‍🍳</div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 text-base">Live Restaurant Orders</h3>
+                                <p class="text-xs text-gray-400">Accept, prepare & dispatch</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/product-add.html" class="block bg-white p-5 rounded-3xl shadow-sm border border-gray-100 hover:border-orange-500 hover:shadow-md transition group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🍽️</div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 text-base">Food Items</h3>
+                                <p class="text-xs text-gray-400">Manage menu dishes & photos</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/restaurant-reviews.html" class="block bg-white p-5 rounded-3xl shadow-sm border border-gray-100 hover:border-orange-500 hover:shadow-md transition group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-yellow-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">⭐</div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 text-base">Customer Reviews</h3>
+                                <p class="text-xs text-gray-400">Ratings on food dishes</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/restaurant-sales.html" class="block bg-white p-5 rounded-3xl shadow-sm border border-gray-100 hover:border-orange-500 hover:shadow-md transition group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">📊</div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 text-base">Sales & Reports</h3>
+                                <p class="text-xs text-gray-400">Financial analytics & export</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Rider Quick Links -->
+                <div id="rider-quick-links" class="hidden space-y-4">
+                    <a href="/rider-orders.html" class="block bg-white p-5 rounded-3xl shadow-sm border border-gray-100 hover:border-orange-500 hover:shadow-md transition group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🛵</div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 text-base">Rider Dispatch Console</h3>
+                                <p class="text-xs text-gray-400">Claim deliveries & route with map</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="/rider-orders.html" class="block bg-white p-5 rounded-3xl shadow-sm border border-gray-100 hover:border-orange-500 hover:shadow-md transition group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">⚙️</div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 text-base">Vehicle Management</h3>
+                                <p class="text-xs text-gray-400">Update photo, type & view approval</p>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="http://localhost:8080/api/orders/reports/rider-deliveries?username=" id="rider-report-link" target="_blank" class="block bg-white p-5 rounded-3xl shadow-sm border border-gray-100 hover:border-orange-500 hover:shadow-md transition group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">📄</div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 text-base">Download Trip Report</h3>
+                                <p class="text-xs text-gray-400">Completed deliveries summary</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Admin Quick Links -->
+                <div id="admin-quick-links" class="hidden space-y-4">
+                    <a href="/admin-dashboard.html" class="block bg-gray-900 text-white p-5 rounded-3xl shadow-md border border-gray-800 hover:bg-orange-500 transition group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">⚙️</div>
+                            <div>
+                                <h3 class="font-bold text-white text-base">Admin Dashboard</h3>
+                                <p class="text-xs text-gray-300">Manage all users & system</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right Side: Edit Profile Form -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="px-8 py-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                        <h3 class="font-bold text-gray-900 text-lg">Personal Account Information</h3>
+                        <span class="text-xs text-gray-400 font-medium">Update profile settings</span>
+                    </div>
+
+                    <form id="profile-form" onsubmit="handleProfileUpdate(event)" class="p-8 space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Full Name</label>
+                                <input type="text" id="fullName" name="fullName" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium text-sm focus:ring-2 focus:ring-orange-500 outline-none transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Email Address</label>
+                                <input type="email" id="email" name="email" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium text-sm focus:ring-2 focus:ring-orange-500 outline-none transition">
+                            </div>
+                        </div>
+
+                        <div id="phone-container" class="hidden">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Contact Phone Number</label>
+                            <input type="text" id="phoneNumber" name="phoneNumber" placeholder="e.g. 077 123 4567" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium text-sm focus:ring-2 focus:ring-orange-500 outline-none transition">
+                        </div>
+
+                        <div id="specific-field-container" class="hidden">
+                            <label id="specific-field-label" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Specific Field</label>
+                            <input type="text" id="specificField" name="specificField" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium text-sm focus:ring-2 focus:ring-orange-500 outline-none transition">
+                        </div>
+
+                        <div class="pt-4 border-t border-gray-100 flex justify-end">
+                            <button type="submit" class="px-8 py-3 bg-gray-900 hover:bg-orange-500 text-white font-bold rounded-2xl transition shadow-md text-sm">
+                                Save Profile Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="bg-white rounded-3xl shadow-sm border border-red-100 p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <h4 class="font-bold text-red-900 text-base">Delete Account</h4>
+                        <p class="text-xs text-gray-500 mt-1">Permanently remove your account and all associated profile data.</p>
+                    </div>
+                    <button onclick="deleteAccount()" class="px-6 py-2.5 bg-red-50 text-red-600 font-bold text-xs rounded-xl hover:bg-red-600 hover:text-white transition border border-red-200">
+                        Delete Account
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- TAB 2: Delivery Locations (CRUD with Map) -->
+    <div id="tab-locations-section" class="hidden space-y-8">
+        
+        <!-- Header & Add Toggle -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+            <div>
+                <h2 class="text-2xl font-black text-gray-900">Delivery Locations</h2>
+                <p class="text-xs text-gray-500 mt-1">Manage drop-off addresses with precise map pin coordinates for Restaurant and Rider navigation.</p>
+            </div>
+            <button onclick="toggleAddressForm()" id="address-toggle-btn" class="bg-gray-900 hover:bg-orange-500 text-white px-5 py-2.5 rounded-2xl font-bold transition text-sm flex items-center gap-2 shadow">
+                <span id="address-toggle-icon">+</span> <span id="address-toggle-text">Add New Location</span>
+            </button>
+        </div>
+
+        <!-- Add / Edit Address Form (Collapsible) -->
+        <div id="address-form-container" class="hidden bg-white p-8 rounded-3xl shadow-sm border border-gray-100 space-y-6">
+            <div class="flex justify-between items-center pb-4 border-b border-gray-100">
+                <div>
+                    <h3 id="address-form-title" class="text-xl font-bold text-gray-900">Add New Delivery Location</h3>
+                    <p class="text-xs text-gray-400">Customer details are automatically filled and can be adjusted.</p>
+                </div>
+                <button onclick="toggleAddressForm(false)" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+            </div>
+
+            <!-- Leaflet Interactive Map Picker -->
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700">📍 Select Location on Map</label>
+                    <button type="button" onclick="locateAddressUser()" class="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1 bg-orange-50 px-3 py-1 rounded-full border border-orange-100">
+                        <span>🎯</span> Use Current GPS Location
+                    </button>
+                </div>
+                <div id="address-map" class="border border-gray-200"></div>
+                <p class="text-xs text-gray-400 mt-2 flex items-center justify-between">
+                    <span>Click anywhere on the map or drag the marker to pinpoint the exact destination.</span>
+                    <span class="font-bold text-gray-700 bg-gray-100 px-2.5 py-0.5 rounded-lg" id="addressCoordsDisplay">6.9271, 79.8612</span>
+                </p>
+            </div>
+
+            <form id="address-form" onsubmit="handleSaveAddress(event)" class="space-y-6">
+                <input type="hidden" id="addr-id" value="">
+                <input type="hidden" id="addr-lat" value="6.9271">
+                <input type="hidden" id="addr-lng" value="79.8612">
+
+                <!-- Customer Details Auto-Filled (Editable) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-orange-50/40 p-4 rounded-2xl border border-orange-100">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Recipient Customer Name</label>
+                        <input type="text" id="addr-customerName" required placeholder="e.g. Alice Customer" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Recipient Phone Number</label>
+                        <input type="text" id="addr-phoneNumber" required placeholder="e.g. 077 123 4567" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Address Type</label>
+                        <select id="addr-type" required onchange="handleAddrTypeChange()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
+                            <option value="HOME">Home Address</option>
+                            <option value="OFFICE">Office Address</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Street Address</label>
+                        <input type="text" id="addr-street" required placeholder="e.g. 45/2 Galle Road" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">City</label>
+                        <input type="text" id="addr-city" required placeholder="e.g. Colombo 03" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Postal / Zip Code</label>
+                        <input type="text" id="addr-zip" required placeholder="e.g. 00300" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label id="addr-detail-label" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Gate / Security Code (Optional)</label>
+                    <input type="text" id="addr-specificDetail" placeholder="e.g. Black gate, Ring bell #3" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                    <button type="button" onclick="toggleAddressForm(false)" class="px-5 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 text-sm">Cancel</button>
+                    <button type="submit" id="addr-submit-btn" class="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition text-sm shadow shadow-orange-500/20">Save Delivery Location</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Saved Locations Grid -->
+        <div id="saved-locations-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="col-span-full py-12 text-center text-gray-400 font-medium animate-pulse">Loading saved delivery locations...</div>
+        </div>
+
+    </div>
+
+    <!-- TAB 3: Payment Cards (CRUD with SVG Realistic Display) -->
+    <div id="tab-cards-section" class="hidden space-y-8">
+        
+        <!-- Header & Add Toggle -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+            <div>
+                <h2 class="text-2xl font-black text-gray-900">Online Payment Cards</h2>
+                <p class="text-xs text-gray-500 mt-1">Manage saved credit and debit cards securely with polymorphic payment encapsulation.</p>
+            </div>
+            <button onclick="toggleCardForm()" id="card-toggle-btn" class="bg-gray-900 hover:bg-orange-500 text-white px-5 py-2.5 rounded-2xl font-bold transition text-sm flex items-center gap-2 shadow">
+                <span id="card-toggle-icon">+</span> <span id="card-toggle-text">Add New Card</span>
+            </button>
+        </div>
+
+        <!-- Add / Edit Card Form (Collapsible) -->
+        <div id="card-form-container" class="hidden bg-white p-8 rounded-3xl shadow-sm border border-gray-100 space-y-6">
+            <div class="flex justify-between items-center pb-4 border-b border-gray-100">
+                <div>
+                    <h3 id="card-form-title" class="text-xl font-bold text-gray-900">Add New Payment Card</h3>
+                    <p class="text-xs text-gray-400">Cardholder name auto-filled. Sensitive details are safely encrypted and masked.</p>
+                </div>
+                <button onclick="toggleCardForm(false)" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+            </div>
+
+            <form id="card-form" onsubmit="handleSaveCard(event)" class="space-y-6">
+                <input type="hidden" id="card-id" value="">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Card Type</label>
+                        <select id="card-type" required onchange="handleCardTypeChange()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
+                            <option value="CREDIT">Credit Card (Visa / Mastercard)</option>
+                            <option value="DEBIT">Debit Card (Direct Bank Transfer)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Cardholder Full Name</label>
+                        <input type="text" id="card-holder" required placeholder="e.g. Alice Customer" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Card Number (16 Digits)</label>
+                        <input type="text" id="card-number" required maxlength="19" placeholder="4111 2222 3333 4444" oninput="formatCardNumberInput(this)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono tracking-widest font-bold focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    <div>
+                        <label id="card-detail-label" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Credit Limit (Rs.)</label>
+                        <input type="text" id="card-specificDetail" placeholder="e.g. 50000" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- Expiry Date (Month / Year) and CVV -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Expiry Month</label>
+                        <select id="card-exp-month" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
+                            <option value="01">01 - January</option>
+                            <option value="02">02 - February</option>
+                            <option value="03">03 - March</option>
+                            <option value="04">04 - April</option>
+                            <option value="05">05 - May</option>
+                            <option value="06">06 - June</option>
+                            <option value="07">07 - July</option>
+                            <option value="08">08 - August</option>
+                            <option value="09">09 - September</option>
+                            <option value="10">10 - October</option>
+                            <option value="11">11 - November</option>
+                            <option value="12" selected>12 - December</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Expiry Year</label>
+                        <select id="card-exp-year" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
+                            <option value="26">2026</option>
+                            <option value="27">2027</option>
+                            <option value="28" selected>2028</option>
+                            <option value="29">2029</option>
+                            <option value="30">2030</option>
+                            <option value="31">2031</option>
+                            <option value="32">2032</option>
+                            <option value="33">2033</option>
+                            <option value="34">2034</option>
+                            <option value="35">2035</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">CVV / CVC (3-4 Digits)</label>
+                        <input type="password" id="card-cvv" required maxlength="4" placeholder="•••" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono tracking-widest font-bold focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                    <button type="button" onclick="toggleCardForm(false)" class="px-5 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 text-sm">Cancel</button>
+                    <button type="submit" id="card-submit-btn" class="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition text-sm shadow shadow-orange-500/20">Save Payment Card</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Saved Cards Display (GORGEOUS SVG Realistic Cards Grid) -->
+        <div id="saved-cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="col-span-full py-12 text-center text-gray-400 font-medium animate-pulse">Loading saved payment cards...</div>
+        </div>
+
+    </div>
+
+</main>
+
+<footer class="bg-gray-900 py-8 text-gray-400 mt-20">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs">
+        <p>&copy; 2026 CraveBite Inc. All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="/js/navbar.js"></script>
+<script>
+    const username = localStorage.getItem('username');
+    if (!username) window.location.href = '/login.html';
+
+    let currentUser = null;
+    let addressMap = null;
+    let addressMarker = null;
+
+    // Tab Switching
+    function switchTab(tab) {
+        document.getElementById('tab-profile-section').classList.add('hidden');
+        document.getElementById('tab-locations-section').classList.add('hidden');
+        document.getElementById('tab-cards-section').classList.add('hidden');
+
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            b.className = 'tab-btn px-5 py-3 rounded-2xl font-bold text-sm bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 flex items-center gap-2 transition';
+        });
+
+        if (tab === 'profile') {
+            document.getElementById('tab-profile-section').classList.remove('hidden');
+            document.getElementById('tab-btn-profile').className = 'tab-btn px-5 py-3 rounded-2xl font-bold text-sm bg-gray-900 text-white shadow-sm flex items-center gap-2 transition';
+        } else if (tab === 'locations') {
+            document.getElementById('tab-locations-section').classList.remove('hidden');
+            document.getElementById('tab-btn-locations').className = 'tab-btn px-5 py-3 rounded-2xl font-bold text-sm bg-gray-900 text-white shadow-sm flex items-center gap-2 transition';
+            initAddressMap();
+            loadSavedAddresses();
+        } else if (tab === 'cards') {
+            document.getElementById('tab-cards-section').classList.remove('hidden');
+            document.getElementById('tab-btn-cards').className = 'tab-btn px-5 py-3 rounded-2xl font-bold text-sm bg-gray-900 text-white shadow-sm flex items-center gap-2 transition';
+            loadSavedCards();
+        }
+    }
+
+    // Load initial profile data
+    fetch(`http://localhost:8080/api/profile?username=${encodeURIComponent(username)}`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+
+        const user = data.user;
+        currentUser = user;
+        
+        document.getElementById('welcome-name').innerText = user.fullName ? user.fullName.split(' ')[0] : user.username;
+        document.getElementById('display-username').innerText = '@' + user.username;
+        document.getElementById('role-badge').innerText = data.roleName || user.roleType;
+
+        document.getElementById('fullName').value = user.fullName || '';
+        document.getElementById('email').value = user.email || '';
+
+        const role = user.roleType;
+        if (role === 'CUSTOMER') {
+            document.getElementById('customer-tabs-container').classList.remove('hidden');
+            document.getElementById('customer-quick-links').classList.remove('hidden');
+            
+            document.getElementById('phone-container').classList.remove('hidden');
+            document.getElementById('phoneNumber').value = user.phoneNumber || '';
+            
+            document.getElementById('specific-field-container').classList.remove('hidden');
+            document.getElementById('specific-field-label').innerText = 'Default Delivery Address';
+            document.getElementById('specificField').value = user.defaultDeliveryAddress || '';
+
+            // Auto-fill delivery location and cardholder inputs
+            if (document.getElementById('addr-customerName')) {
+                document.getElementById('addr-customerName').value = user.fullName || '';
+            }
+            if (document.getElementById('addr-phoneNumber')) {
+                document.getElementById('addr-phoneNumber').value = user.phoneNumber || '';
+            }
+            if (document.getElementById('card-holder')) {
+                document.getElementById('card-holder').value = user.fullName || '';
+            }
+        } 
+        else if (role === 'RESTAURANT_OWNER') {
+            document.getElementById('restaurant-quick-links').classList.remove('hidden');
+            document.getElementById('specific-field-container').classList.remove('hidden');
+            document.getElementById('specific-field-label').innerText = 'Restaurant Name';
+            document.getElementById('specificField').value = user.restaurantName || '';
+        }
+        else if (role === 'RIDER') {
+            document.getElementById('rider-quick-links').classList.remove('hidden');
+            document.getElementById('rider-report-link').href = `http://localhost:8080/api/orders/reports/rider-deliveries?username=${encodeURIComponent(username)}`;
+            document.getElementById('phone-container').classList.remove('hidden');
+            document.getElementById('phoneNumber').value = user.phoneNumber || '';
+            document.getElementById('specific-field-container').classList.remove('hidden');
+            document.getElementById('specific-field-label').innerText = 'Vehicle Plate Number';
+            document.getElementById('specificField').value = user.vehiclePlateNumber || '';
+        }
+        else if (role === 'ADMIN') {
+            document.getElementById('admin-quick-links').classList.remove('hidden');
+        }
+    });
+
+    // Profile update
+    function handleProfileUpdate(e) {
+        e.preventDefault();
+        const params = new URLSearchParams();
+        params.append('username', username);
+        params.append('fullName', document.getElementById('fullName').value);
+        params.append('email', document.getElementById('email').value);
+        params.append('specificField', document.getElementById('specificField').value || '');
+        if (!document.getElementById('phone-container').classList.contains('hidden')) {
+            params.append('phoneNumber', document.getElementById('phoneNumber').value || '');
+        }
+
+        fetch(`http://localhost:8080/api/profile/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Profile updated successfully!');
+                window.location.reload();
+            } else {
+                alert(data.error || 'Failed to update profile');
+            }
+        });
+    }
+
+    // Delete Account
+    function deleteAccount() {
+        if(confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+            fetch(`http://localhost:8080/api/profile/delete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `username=${encodeURIComponent(username)}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    localStorage.removeItem('username');
+                    localStorage.removeItem('role');
+                    window.location.href = '/login.html';
+                } else {
+                    alert('Error deleting account');
+                }
+            });
+        }
+    }
+
+    /* -------------------------------------------------------------
+       DELIVERY LOCATIONS CRUD & INTERACTIVE MAP ROUTING
+    ------------------------------------------------------------- */
+    function initAddressMap() {
+        if (addressMap) {
+            setTimeout(() => addressMap.invalidateSize(), 200);
+            return;
+        }
+
+        const defaultLat = 6.9271;
+        const defaultLng = 79.8612;
+
+        addressMap = L.map('address-map').setView([defaultLat, defaultLng], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(addressMap);
+
+        addressMarker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(addressMap);
+
+        addressMarker.on('dragend', function(e) {
+            const pos = e.target.getLatLng();
+            updateAddressCoords(pos.lat, pos.lng);
+        });
+
+        addressMap.on('click', function(e) {
+            addressMarker.setLatLng(e.latlng);
+            updateAddressCoords(e.latlng.lat, e.latlng.lng);
+        });
+
+        setTimeout(() => addressMap.invalidateSize(), 300);
+    }
+
+    function updateAddressCoords(lat, lng) {
+        const roundedLat = parseFloat(lat.toFixed(6));
+        const roundedLng = parseFloat(lng.toFixed(6));
+        document.getElementById('addr-lat').value = roundedLat;
+        document.getElementById('addr-lng').value = roundedLng;
+        document.getElementById('addressCoordsDisplay').innerText = `${roundedLat}, ${roundedLng}`;
+    }
+
+    function locateAddressUser() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    if (addressMap && addressMarker) {
+                        addressMap.setView([lat, lng], 16);
+                        addressMarker.setLatLng([lat, lng]);
+                        updateAddressCoords(lat, lng);
+                    }
+                },
+                err => {
+                    alert("Unable to retrieve your GPS location. Please drop a pin manually on the map.");
+                }
+            );
+        } else {
+            alert("Geolocation is not supported by your browser.");
+        }
+    }
+
+    function toggleAddressForm(show) {
+        const container = document.getElementById('address-form-container');
+        const icon = document.getElementById('address-toggle-icon');
+        const text = document.getElementById('address-toggle-text');
+
+        const shouldOpen = show !== undefined ? show : container.classList.contains('hidden');
+        if (shouldOpen) {
+            container.classList.remove('hidden');
+            icon.innerText = '−';
+            text.innerText = 'Close Form';
+            initAddressMap();
+            setTimeout(() => addressMap && addressMap.invalidateSize(), 200);
+        } else {
+            container.classList.add('hidden');
+            icon.innerText = '+';
+            text.innerText = 'Add New Location';
+            resetAddressForm();
+        }
+    }
+
+    function handleAddrTypeChange() {
+        const type = document.getElementById('addr-type').value;
+        const label = document.getElementById('addr-detail-label');
+        const input = document.getElementById('addr-specificDetail');
+        if (type === 'HOME') {
+            label.innerText = 'Gate / Security Code (Optional)';
+            input.placeholder = 'e.g. Black gate, Ring bell #3';
+        } else {
+            label.innerText = 'Floor & Company Name (Office Details)';
+            input.placeholder = 'e.g. 5th Floor, Suite 502, TechCorp';
+        }
+    }
+
+    function resetAddressForm() {
+        document.getElementById('addr-id').value = '';
+        document.getElementById('address-form-title').innerText = 'Add New Delivery Location';
+        document.getElementById('addr-submit-btn').innerText = 'Save Delivery Location';
+        document.getElementById('addr-street').value = '';
+        document.getElementById('addr-city').value = '';
+        document.getElementById('addr-zip').value = '';
+        document.getElementById('addr-specificDetail').value = '';
+        document.getElementById('addr-type').value = 'HOME';
+        handleAddrTypeChange();
+
+        if (currentUser) {
+            document.getElementById('addr-customerName').value = currentUser.fullName || '';
+            document.getElementById('addr-phoneNumber').value = currentUser.phoneNumber || '';
+        }
+        updateAddressCoords(6.9271, 79.8612);
+        if (addressMap && addressMarker) {
+            addressMap.setView([6.9271, 79.8612], 13);
+            addressMarker.setLatLng([6.9271, 79.8612]);
+        }
+    }
+
+    function loadSavedAddresses() {
+        fetch(`http://localhost:8080/api/address?username=${encodeURIComponent(username)}`)
+        .then(r => r.json())
+        .then(addresses => {
+            const container = document.getElementById('saved-locations-container');
+            if (!addresses || addresses.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-white p-12 rounded-3xl border border-gray-100 text-center">
+                        <span class="text-5xl block mb-4">📍</span>
+                        <h3 class="text-xl font-bold text-gray-900">No delivery locations saved yet</h3>
+                        <p class="text-gray-500 text-sm mt-1 mb-6">Save your home or office address to enable 1-click checkout and direct Google Maps rider routing.</p>
+                        <button onclick="toggleAddressForm(true)" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2.5 rounded-full transition shadow">Add Location Now</button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = addresses.map(addr => {
+                const isHome = addr.addressType === 'HOME';
+                const typeBadge = isHome 
+                    ? '<span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-black uppercase tracking-wider">🏡 Home</span>'
+                    : '<span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-black uppercase tracking-wider">🏢 Office</span>';
+                
+                const lat = addr.latitude || 6.9271;
+                const lng = addr.longitude || 79.8612;
+                const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
+                return `
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md hover:border-orange-200 transition">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                ${typeBadge}
+                                <span class="text-xs font-mono font-bold text-gray-500 bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-100">
+                                    GPS: ${lat.toFixed(4)}, ${lng.toFixed(4)}
+                                </span>
+                            </div>
+
+                            <h4 class="text-lg font-black text-gray-900 mb-1">${addr.streetAddress}</h4>
+                            <p class="text-gray-500 text-sm font-medium mb-3">${addr.city}, Postal Code: ${addr.zipCode}</p>
+
+                            <div class="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 text-xs space-y-1.5 mb-4">
+                                <p class="text-gray-700"><strong>👤 Recipient:</strong> ${addr.customerName || currentUser.fullName || 'N/A'}</p>
+                                <p class="text-gray-700"><strong>📞 Phone:</strong> ${addr.phoneNumber || currentUser.phoneNumber || 'N/A'}</p>
+                                <p class="text-gray-600 italic">"${addr.deliveryInstructions || ''}"</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-between gap-2 pt-4 border-t border-gray-100">
+                            <a href="${googleMapsUrl}" target="_blank" class="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold rounded-xl text-xs transition flex items-center gap-1.5">
+                                <span>🗺️</span> Open in Google Maps
+                            </a>
+                            <div class="flex items-center gap-2">
+                                <button onclick="editAddress(${JSON.stringify(addr).replace(/"/g, '&quot;')})" class="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition">
+                                    Edit
+                                </button>
+                                <button onclick="deleteAddress(${addr.id})" class="px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl text-xs transition">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('saved-locations-container').innerHTML = `
+                <div class="col-span-full text-center text-red-500 py-6">Failed to load addresses.</div>
+            `;
+        });
+    }
+
+    function handleSaveAddress(e) {
+        e.preventDefault();
+        const id = document.getElementById('addr-id').value;
+        const isEdit = !!id;
+
+        const url = isEdit 
+            ? `http://localhost:8080/api/address/edit/${id}`
+            : `http://localhost:8080/api/address/add`;
+
+        const params = new URLSearchParams();
+        params.append('username', username);
+        params.append('customerName', document.getElementById('addr-customerName').value);
+        params.append('phoneNumber', document.getElementById('addr-phoneNumber').value);
+        params.append('addressType', document.getElementById('addr-type').value);
+        params.append('streetAddress', document.getElementById('addr-street').value);
+        params.append('city', document.getElementById('addr-city').value);
+        params.append('zipCode', document.getElementById('addr-zip').value);
+        params.append('specificDetails', document.getElementById('addr-specificDetail').value || '');
+        params.append('latitude', document.getElementById('addr-lat').value);
+        params.append('longitude', document.getElementById('addr-lng').value);
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert(isEdit ? 'Address updated successfully!' : 'Address added successfully!');
+                toggleAddressForm(false);
+                loadSavedAddresses();
+            } else {
+                alert(data.error || 'Failed to save address');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Server error saving address');
+        });
+    }
+
+    function editAddress(addr) {
+        toggleAddressForm(true);
+        document.getElementById('addr-id').value = addr.id;
+        document.getElementById('address-form-title').innerText = 'Edit Delivery Location';
+        document.getElementById('addr-submit-btn').innerText = 'Update Location';
+
+        document.getElementById('addr-customerName').value = addr.customerName || currentUser.fullName || '';
+        document.getElementById('addr-phoneNumber').value = addr.phoneNumber || currentUser.phoneNumber || '';
+        document.getElementById('addr-type').value = addr.addressType || 'HOME';
+        handleAddrTypeChange();
+
+        document.getElementById('addr-street').value = addr.streetAddress || '';
+        document.getElementById('addr-city').value = addr.city || '';
+        document.getElementById('addr-zip').value = addr.zipCode || '';
+        document.getElementById('addr-specificDetail').value = addr.specificDetail || '';
+
+        const lat = addr.latitude || 6.9271;
+        const lng = addr.longitude || 79.8612;
+        updateAddressCoords(lat, lng);
+        if (addressMap && addressMarker) {
+            addressMap.setView([lat, lng], 15);
+            addressMarker.setLatLng([lat, lng]);
+            addressMap.invalidateSize();
+        }
+        window.scrollTo({ top: document.getElementById('address-form-container').offsetTop - 80, behavior: 'smooth' });
+    }
+
+    function deleteAddress(id) {
+        if (!confirm('Are you sure you want to delete this delivery location?')) return;
+        fetch(`http://localhost:8080/api/address/delete/${id}?username=${encodeURIComponent(username)}`, {
+            method: 'POST'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                loadSavedAddresses();
+            } else {
+                alert(data.error || 'Failed to delete address');
+            }
+        });
+    }
+
+
+    /* -------------------------------------------------------------
+       ONLINE PAYMENT CARDS CRUD & REALISTIC SVG DISPLAY
+    ------------------------------------------------------------- */
+    function toggleCardForm(show) {
+        const container = document.getElementById('card-form-container');
+        const icon = document.getElementById('card-toggle-icon');
+        const text = document.getElementById('card-toggle-text');
+
+        const shouldOpen = show !== undefined ? show : container.classList.contains('hidden');
+        if (shouldOpen) {
+            container.classList.remove('hidden');
+            icon.innerText = '−';
+            text.innerText = 'Close Form';
+        } else {
+            container.classList.add('hidden');
+            icon.innerText = '+';
+            text.innerText = 'Add New Card';
+            resetCardForm();
+        }
+    }
+
+    function handleCardTypeChange() {
+        const type = document.getElementById('card-type').value;
+        const label = document.getElementById('card-detail-label');
+        const input = document.getElementById('card-specificDetail');
+        if (type === 'CREDIT') {
+            label.innerText = 'Credit Limit (Rs.)';
+            input.placeholder = 'e.g. 50000';
+            input.type = 'number';
+        } else {
+            label.innerText = 'Bank Name (Debit Account)';
+            input.placeholder = 'e.g. Commercial Bank';
+            input.type = 'text';
+        }
+    }
+
+    function formatCardNumberInput(input) {
+        let val = input.value.replace(/\D/g, '').substring(0, 16);
+        let formatted = val.match(/.{1,4}/g)?.join(' ') || val;
+        input.value = formatted;
+    }
+
+    function resetCardForm() {
+        document.getElementById('card-id').value = '';
+        document.getElementById('card-form-title').innerText = 'Add New Payment Card';
+        document.getElementById('card-submit-btn').innerText = 'Save Payment Card';
+        document.getElementById('card-number').value = '';
+        document.getElementById('card-cvv').value = '';
+        document.getElementById('card-specificDetail').value = '';
+        document.getElementById('card-type').value = 'CREDIT';
+        handleCardTypeChange();
+        if (currentUser) {
+            document.getElementById('card-holder').value = currentUser.fullName || '';
+        }
+    }
+
+    function loadSavedCards() {
+        fetch(`http://localhost:8080/api/payment/methods?username=${encodeURIComponent(username)}`)
+        .then(r => r.json())
+        .then(methods => {
+            const container = document.getElementById('saved-cards-container');
+            if (!methods || methods.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-white p-12 rounded-3xl border border-gray-100 text-center">
+                        <span class="text-5xl block mb-4">💳</span>
+                        <h3 class="text-xl font-bold text-gray-900">No payment cards saved</h3>
+                        <p class="text-gray-500 text-sm mt-1 mb-6">Add your Credit or Debit card to enjoy frictionless checkout.</p>
+                        <button onclick="toggleCardForm(true)" class="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2.5 rounded-full transition shadow">Add Card Now</button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = methods.map(pm => {
+                const isCredit = pm.cardType === 'CREDIT';
+                const cardholder = (pm.cardholderName || 'CARDHOLDER').toUpperCase();
+                const masked = pm.maskedDetails || '•••• •••• •••• ••••';
+                const expiry = pm.expiryDate || '12/28';
+                const detail = pm.cardSpecificDetail || (isCredit ? 'Credit Card' : 'Debit Card');
+
+                // Realistic Card Themes
+                // Credit Card: Deep Charcoal / Obsidian with gold metallic accents
+                // Debit Card: Imperial Navy Sapphire with silver cyan accents
+                const cardBg = isCredit 
+                    ? 'bg-gradient-to-tr from-zinc-950 via-slate-900 to-zinc-800 border-zinc-700/60 shadow-2xl shadow-zinc-900/40 text-white'
+                    : 'bg-gradient-to-tr from-slate-950 via-blue-950 to-indigo-900 border-blue-500/30 shadow-2xl shadow-blue-950/40 text-white';
+
+                // Realistic SVG Chip
+                const chipSvg = `
+                    <svg class="w-12 h-9 rounded-md shrink-0 shadow-sm" viewBox="0 0 48 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="48" height="36" rx="6" fill="#EAB308"/>
+                        <rect x="2" y="2" width="44" height="32" rx="4" fill="#FACC15" stroke="#CA8A04" stroke-width="1"/>
+                        <path d="M0 18H48M16 2V34M32 2V34M2 10H16M32 10H46M2 26H16M32 26H46" stroke="#A16207" stroke-width="1.2"/>
+                        <circle cx="24" cy="18" r="4.5" fill="#EAB308" stroke="#CA8A04" stroke-width="1"/>
+                    </svg>
+                `;
+
+                // Contactless Wave SVG
+                const waveSvg = `
+                    <svg class="w-6 h-6 text-white/70" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.5 16.5a5 5 0 010-9M12 19a8.5 8.5 0 000-14M15.5 21.5a12 12 0 000-19" />
+                    </svg>
+                `;
+
+                // Brand Logo SVG (Visa / Mastercard)
+                let brandSvg = '';
+                if (isCredit) {
+                    // Visa Brand SVG
+                    brandSvg = `
+                        <svg class="w-16 h-8 text-white drop-shadow" viewBox="0 0 100 32" fill="currentColor">
+                            <text x="2" y="26" font-family="'Outfit', sans-serif" font-weight="900" font-size="30" font-style="italic" fill="white" letter-spacing="1">VISA</text>
+                        </svg>
+                    `;
+                } else {
+                    // Mastercard Brand SVG
+                    brandSvg = `
+                        <svg class="w-14 h-8 drop-shadow" viewBox="0 0 40 25" fill="none">
+                            <circle cx="15" cy="12.5" r="10" fill="#EB001B" fill-opacity="0.95"/>
+                            <circle cx="25" cy="12.5" r="10" fill="#F79E1B" fill-opacity="0.95"/>
+                        </svg>
+                    `;
+                }
+
+                return `
+                    <div class="relative rounded-3xl p-7 border ${cardBg} transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between h-[230px] overflow-hidden group">
+                        
+                        <!-- Top Row: Chip, Contactless Wave, and Brand Logo -->
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                ${chipSvg}
+                                ${waveSvg}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-widest uppercase bg-white/10 backdrop-blur border border-white/20">
+                                    ${isCredit ? 'CREDIT' : 'DEBIT'}
+                                </span>
+                                ${brandSvg}
+                            </div>
+                        </div>
+
+                        <!-- Middle Row: Embossed Masked Card Number -->
+                        <div class="my-auto">
+                            <p class="text-xl sm:text-2xl font-bold tracking-widest font-mono text-white/90 drop-shadow">
+                                ${masked}
+                            </p>
+                        </div>
+
+                        <!-- Bottom Row: Cardholder, Expiry, and Action Buttons -->
+                        <div class="flex justify-between items-end pt-3 border-t border-white/10">
+                            <div>
+                                <span class="text-[9px] uppercase tracking-widest text-white/50 block font-bold">Cardholder</span>
+                                <p class="text-sm font-extrabold tracking-wide text-white truncate max-w-[160px]">${cardholder}</p>
+                                <span class="text-[10px] text-amber-300 font-semibold block">${detail}</span>
+                            </div>
+
+                            <div class="text-center">
+                                <span class="text-[9px] uppercase tracking-widest text-white/50 block font-bold">Valid Thru</span>
+                                <p class="text-xs font-mono font-bold tracking-wider text-white">${expiry}</p>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <button onclick="editCard(${JSON.stringify(pm).replace(/"/g, '&quot;')})" class="px-3 py-1 bg-white/20 hover:bg-white/30 text-white font-bold rounded-lg text-xs backdrop-blur transition">
+                                    Edit
+                                </button>
+                                <button onclick="deleteCard(${pm.id})" class="px-3 py-1 bg-red-500/40 hover:bg-red-500/60 text-red-200 hover:text-white font-bold rounded-lg text-xs backdrop-blur transition">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                `;
+            }).join('');
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('saved-cards-container').innerHTML = `
+                <div class="col-span-full text-center text-red-500 py-6">Failed to load payment cards.</div>
+            `;
+        });
+    }
+
+    function handleSaveCard(e) {
+        e.preventDefault();
+        const id = document.getElementById('card-id').value;
+        const isEdit = !!id;
+
+        const url = isEdit 
+            ? `http://localhost:8080/api/payment/edit/${id}`
+            : `http://localhost:8080/api/payment/add`;
+
+        const rawNumber = document.getElementById('card-number').value.replace(/\s+/g, '');
+        if (rawNumber.length < 15) {
+            alert('Please enter a valid 16-digit card number');
+            return;
+        }
+
+        const expMonth = document.getElementById('card-exp-month').value;
+        const expYear = document.getElementById('card-exp-year').value;
+        const expiryDate = `${expMonth}/${expYear}`;
+
+        const params = new URLSearchParams();
+        params.append('username', username);
+        params.append('cardholderName', document.getElementById('card-holder').value);
+        params.append('cardNumber', rawNumber);
+        params.append('expiryDate', expiryDate);
+        params.append('cvv', document.getElementById('card-cvv').value);
+        params.append('specificDetails', document.getElementById('card-specificDetail').value || '');
+        if (!isEdit) {
+            params.append('cardType', document.getElementById('card-type').value);
+        }
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                alert(isEdit ? 'Card updated successfully!' : 'Card saved successfully!');
+                toggleCardForm(false);
+                loadSavedCards();
+            } else {
+                alert(data.error || 'Failed to save card');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Server error saving card');
+        });
+    }
+
+    function editCard(pm) {
+        toggleCardForm(true);
+        document.getElementById('card-id').value = pm.id;
+        document.getElementById('card-form-title').innerText = 'Edit Payment Card';
+        document.getElementById('card-submit-btn').innerText = 'Update Payment Card';
+
+        document.getElementById('card-holder').value = pm.cardholderName || '';
+        document.getElementById('card-number').value = pm.cardNumber || '';
+        document.getElementById('card-type').value = pm.cardType || 'CREDIT';
+        handleCardTypeChange();
+
+        if (pm.expiryDate && pm.expiryDate.includes('/')) {
+            const parts = pm.expiryDate.split('/');
+            document.getElementById('card-exp-month').value = parts[0].padStart(2, '0');
+            document.getElementById('card-exp-year').value = parts[1].slice(-2);
+        }
+        document.getElementById('card-cvv').value = pm.cvv || '';
+        document.getElementById('card-specificDetail').value = pm.cardSpecificDetail || '';
+
+        window.scrollTo({ top: document.getElementById('card-form-container').offsetTop - 80, behavior: 'smooth' });
+    }
+
+    function deleteCard(id) {
+        if (!confirm('Are you sure you want to delete this payment card?')) return;
+        fetch(`http://localhost:8080/api/payment/delete/${id}?username=${encodeURIComponent(username)}`, {
+            method: 'POST'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                loadSavedCards();
+            } else {
+                alert(data.error || 'Failed to delete card');
+            }
+        });
+    }
+</script>
+</body>
+</html>

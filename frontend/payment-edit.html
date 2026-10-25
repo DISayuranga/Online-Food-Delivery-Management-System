@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Payment Method - CraveBite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen selection:bg-orange-500 selection:text-white">
+
+<!-- Dynamic Navbar -->
+<nav id="cravebite-nav"></nav>
+
+<div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <div class="mb-6 flex justify-between items-center">
+        <h1 class="text-3xl font-black text-gray-900">Edit Payment Card</h1>
+        <a href="/payment-methods.html" class="text-sm font-bold text-gray-500 hover:text-orange-500 transition">&larr; Back to Cards</a>
+    </div>
+
+    <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+        <form id="editPaymentForm" class="space-y-6">
+            
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">Card Type</label>
+                <input type="text" id="cardTypeDisplay" disabled
+                       class="w-full bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 font-medium text-gray-500 outline-none">
+            </div>
+
+            <div>
+                <label for="cardholderName" class="block text-sm font-bold text-gray-700 mb-2">Cardholder Full Name</label>
+                <input type="text" name="cardholderName" id="cardholderName" required
+                       class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium outline-none focus:border-orange-500 transition">
+            </div>
+
+            <div>
+                <label for="cardNumber" class="block text-sm font-bold text-gray-700 mb-2">Card Number (16 Digits)</label>
+                <input type="text" name="cardNumber" id="cardNumber" required maxlength="16" pattern="\d{16}"
+                       class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium outline-none focus:border-orange-500 transition font-mono tracking-widest">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="expiryDate" class="block text-sm font-bold text-gray-700 mb-2">Expiry Date (MM/YY)</label>
+                    <input type="text" name="expiryDate" id="expiryDate" required placeholder="MM/YY" maxlength="5"
+                           class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium outline-none focus:border-orange-500 transition font-mono">
+                </div>
+
+                <div>
+                    <label for="cvv" class="block text-sm font-bold text-gray-700 mb-2">CVV</label>
+                    <input type="password" name="cvv" id="cvv" required maxlength="4"
+                           class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium outline-none focus:border-orange-500 transition font-mono">
+                </div>
+            </div>
+
+            <div id="specificContainer">
+                <label id="specificLabel" for="specificDetails" class="block text-sm font-bold text-gray-700 mb-2">Specific Detail</label>
+                <input type="text" name="specificDetails" id="specificDetails"
+                       class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium outline-none focus:border-orange-500 transition">
+            </div>
+
+            <div class="pt-4 border-t border-gray-100 flex gap-3">
+                <a href="/payment-methods.html" class="w-1/2 py-3 px-4 text-center border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-100 transition">Cancel</a>
+                <button type="submit"
+                        class="w-1/2 py-3 px-4 rounded-xl text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/20 transition">
+                    Update Card
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const username = localStorage.getItem('username');
+    if (!username) {
+        window.location.href = '/login.html';
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const cardId = urlParams.get('id');
+
+    if (!cardId) {
+        alert('Invalid card ID');
+        window.location.href = '/payment-methods.html';
+    }
+
+    fetch(`http://localhost:8080/api/payment/edit/${cardId}?username=${encodeURIComponent(username)}`)
+        .then(res => {
+            if (!res.ok) throw new Error('Not found');
+            return res.json();
+        })
+        .then(pm => {
+            const isCredit = pm.cardType === 'CREDIT';
+            document.getElementById('cardTypeDisplay').value = isCredit ? 'Credit Card' : 'Debit Card';
+            document.getElementById('cardholderName').value = pm.cardholderName || '';
+            document.getElementById('expiryDate').value = pm.expiryDate || '';
+            document.getElementById('specificLabel').innerText = isCredit ? 'Credit Limit (Rs.)' : 'Bank Name';
+            document.getElementById('specificDetails').value = isCredit ? (pm.creditLimit || '50000') : (pm.bankName || '');
+        })
+        .catch(err => {
+            alert('Failed to load card details');
+            window.location.href = '/payment-methods.html';
+        });
+
+    document.getElementById('editPaymentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const fd = new FormData(this);
+        const params = new URLSearchParams();
+        params.append('username', username);
+        params.append('cardholderName', fd.get('cardholderName'));
+        params.append('cardNumber', fd.get('cardNumber'));
+        params.append('expiryDate', fd.get('expiryDate'));
+        params.append('cvv', fd.get('cvv'));
+        params.append('specificDetails', fd.get('specificDetails') || '');
+
+        fetch(`http://localhost:8080/api/payment/edit/${cardId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '/payment-methods.html';
+            } else {
+                alert(data.error || 'Failed to update payment card');
+            }
+        })
+        .catch(err => {
+            alert('Server error updating card');
+        });
+    });
+</script>
+<script src="/js/navbar.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+==================================================
+          RIDER DELIVERY REPORT
+==================================================
+Rider: Charlie Rider (@rider)
+Vehicle Plate: bgk- 5632
+Total Deliveries: 3
+==================================================
+
+Order ID: #5
+Date: Oct 20, 2026 - 09:43 PM
+Customer: Alice Customer
+Delivery Address: 99 Marine Drive, Colombo 03 00300 [GPS: 6.895, 79.855]
+Restaurant: Bob's Burgers
+Order Total: Rs. 3190.00
+--------------------------------------------------
+Order ID: #3
+Date: Oct 20, 2026 - 08:45 PM
+Customer: Alice Customer
+Delivery Address: 123 Lotus Road, Colombo 00100
+Restaurant: Bob's Burgers
+Order Total: Rs. 7975.00
+--------------------------------------------------
+Order ID: #2
+Date: Oct 20, 2026 - 08:24 PM
+Customer: Alice Customer
+Delivery Address: 123 Main Street, Colombo 03 (Lat: 6.9271, Lng: 79.8612)
+Restaurant: Bob's Burgers
+Order Total: Rs. 3190.00
+--------------------------------------------------
+
+Estimated Total Earnings (Rs. 250.00/delivery): Rs. 750.00

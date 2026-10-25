@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - CraveBite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col selection:bg-orange-500 selection:text-white">
+
+<!-- Dynamic Navbar -->
+<nav id="cravebite-nav"></nav>
+
+<div class="flex-grow flex items-center justify-center p-4 py-12">
+<div class="bg-white p-10 rounded-3xl shadow-xl border border-gray-100 text-center max-w-md w-full">
+    <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+        </svg>
+    </div>
+    
+    <h1 id="success-message" class="text-3xl font-black text-gray-900 mb-2">Order Confirmed!</h1>
+    <p id="success-details" class="text-gray-500 mb-8 font-medium">Your payment was processed successfully.</p>
+    
+    <div class="space-y-3">
+        <a href="/order-tracking.html" class="block w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-lg shadow-orange-500/20">
+            📍 Track Your Order
+        </a>
+        <a href="/order-history.html" class="block w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl transition duration-200">
+            🧾 View Order History
+        </a>
+        <a href="/products-list.html" class="block w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-xl transition duration-200">
+            Back to Menu
+        </a>
+    </div>
+</div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const msg = urlParams.get('message');
+    const details = urlParams.get('details');
+    
+    if (msg) document.getElementById('success-message').innerText = msg;
+    if (details) document.getElementById('success-details').innerText = details;
+</script>
+<script src="/js/navbar.js"></script>
+</body>
+</html>

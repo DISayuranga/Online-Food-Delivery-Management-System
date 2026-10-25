@@ -1,0 +1,16 @@
+==================================================
+          RESTAURANT SALES REPORT
+==================================================
+Restaurant: Bob's Burgers
+Owner: Bob Owner (@owner)
+Total Orders: 1
+==================================================
+
+Order #2 | Status: DELIVERED
+Date: Oct 20, 2026 - 08:24 PM
+Customer: Alice Customer
+Items: 2x Classic Double Bacon Burger
+Amount: Rs. 3190.00
+--------------------------------------------------
+
+Total Delivered Revenue: Rs. 3190.00
