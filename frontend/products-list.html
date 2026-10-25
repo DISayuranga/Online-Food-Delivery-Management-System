@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu - CraveBite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen selection:bg-orange-500 selection:text-white">
+
+<!-- Dynamic Navbar -->
+<nav id="cravebite-nav"></nav>
+
+<div class="max-w-7xl mx-auto mt-12 px-4 sm:px-6 lg:px-8 pb-24">
+    
+    <div class="flex justify-between items-end mb-10">
+        <div>
+            <h1 class="text-4xl font-black text-gray-900 tracking-tight">Order from Local Favorites</h1>
+            <p class="text-gray-500 mt-2 text-lg">Discover delicious food delivered fast.</p>
+        </div>
+    </div>
+
+    <div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <!-- Products will be loaded here via JavaScript -->
+        <div class="col-span-full text-center py-12 text-gray-500 font-medium animate-pulse">
+            Loading delicious food...
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        fetch('http://localhost:8080/api/products/list')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('products-container');
+                container.innerHTML = '';
+                
+                if (data.length === 0) {
+                    container.innerHTML = `
+                        <div class="col-span-full bg-white p-12 rounded-3xl shadow-sm border border-gray-100 text-center">
+                            <span class="text-6xl mb-4 block">🍳</span>
+                            <h3 class="text-2xl font-bold text-gray-900">No items on the menu yet!</h3>
+                            <p class="text-gray-500 mt-2">Check back later for delicious additions.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                data.forEach(item => {
+                    const basePrice = item.basePrice.toFixed(2);
+                    const finalPrice = (item.finalPrice !== undefined && item.finalPrice !== null ? item.finalPrice : item.basePrice).toFixed(2);
+                    const itemType = item.itemType || 'Food';
+                    const typeUpper = itemType.toUpperCase();
+                    
+                    let imageHtml = '';
+                    if (item.imageUrl) {
+                        imageHtml = `
+                            <div class="h-48 bg-gray-100 relative overflow-hidden flex items-center justify-center">
+                                <img src="${item.imageUrl}" alt="${item.name}" class="w-full h-full object-cover">
+                                <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-gray-900 shadow-sm border border-gray-200">
+                                    ${itemType}
+                                </div>
+                            </div>`;
+                    } else {
+                        let emoji = '🍛';
+                        if (typeUpper.includes('DESSERT')) emoji = '🍰';
+                        else if (typeUpper.includes('BEVERAGE')) emoji = '🥤';
+                        else if (typeUpper.includes('MAIN')) emoji = '🍛';
+                        
+                        imageHtml = `
+                            <div class="h-48 bg-gray-100 relative overflow-hidden flex items-center justify-center text-5xl">
+                                ${emoji}
+                                <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-gray-900 shadow-sm border border-gray-200">
+                                    ${itemType}
+                                </div>
+                            </div>`;
+                    }
+
+                    let actionHtml = '';
+                    if (item.available) {
+                        actionHtml = `
+                                <button type="button" onclick="addToCart(${item.id}, 1)" class="w-full bg-gray-100 hover:bg-orange-500 text-gray-900 hover:text-white font-bold py-3 px-4 rounded-xl transition duration-200 flex justify-center items-center gap-2">
+                                    Add to Cart <span>+</span>
+                                </button>`;
+                    } else {
+                        actionHtml = `
+                            <div class="mt-auto w-full bg-gray-100 text-gray-400 font-bold py-3 px-4 rounded-xl text-center cursor-not-allowed border border-gray-200">
+                                Sold Out
+                            </div>`;
+                    }
+
+                    const cardHtml = `
+                        <div class="bg-white rounded-3xl overflow-hidden shadow-lg shadow-gray-200/50 border border-gray-100 flex flex-col group hover:-translate-y-1 transition-transform duration-300 relative ${!item.available ? 'opacity-75' : ''}">
+                            ${imageHtml}
+                            <div class="p-6 flex-grow flex flex-col">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="text-xl font-bold text-gray-900 leading-tight">${item.name}</h3>
+                                    <div class="text-right">
+                                        <span class="text-xs text-gray-400 block line-through">Base: Rs. ${basePrice}</span>
+                                        <span class="text-lg font-black text-orange-500">Rs. ${finalPrice}</span>
+                                    </div>
+                                </div>
+                                <p class="text-gray-500 text-sm mb-6 flex-grow">${item.description || ''}</p>
+                                ${actionHtml}
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += cardHtml;
+                });
+            })
+            .catch(error => {
+                console.error("Error fetching products:", error);
+                document.getElementById('products-container').innerHTML = `
+                    <div class="col-span-full text-center py-12 text-red-500 font-bold">
+                        Failed to load products. Make sure the backend server is running.
+                    </div>
+                `;
+            });
+    });
+
+    function addToCart(foodItemId, quantity) {
+        const username = localStorage.getItem('username');
+        if (!username) {
+            alert('Please login first!');
+            window.location.href = '/login.html';
+            return;
+        }
+
+        fetch(`http://localhost:8080/api/cart/add?username=${username}&foodItemId=${foodItemId}&quantity=${quantity}`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Added to cart!');
+            } else {
+                alert(data.error || 'Failed to add to cart');
+            }
+        });
+    }
+
+</script>
+<script src="/js/navbar.js"></script>
+</body>
+</html>

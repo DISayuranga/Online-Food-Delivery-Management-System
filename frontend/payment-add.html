@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Payment Method - CraveBite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen selection:bg-orange-500 selection:text-white">
+
+<!-- Dynamic Navbar -->
+<nav id="cravebite-nav"></nav>
+
+<div class="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <div class="mb-6 flex justify-between items-center">
+        <h1 class="text-3xl font-black text-gray-900">Add Payment Card</h1>
+        <a href="/payment-methods.html" class="text-sm font-bold text-gray-500 hover:text-orange-500 transition">&larr; Back to Cards</a>
+    </div>
+
+    <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+        
+        <div class="bg-amber-50 border-l-4 border-amber-400 p-4 mb-6 rounded-r-2xl">
+            <p class="text-xs text-amber-800 font-medium">
+                <strong>OOP Encapsulation & Security:</strong> Sensitive card numbers and CVV codes are encapsulated. Only the masked last 4 digits are accessible via the client API.
+            </p>
+        </div>
+
+        <form id="paymentForm" class="space-y-6">
+            
+            <div>
+                <label for="cardType" class="block text-sm font-bold text-gray-700 mb-2">Card Type (Polymorphic Method)</label>
+                <select name="cardType" id="cardType" required onchange="updateSpecificFields()"
+                        class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium outline-none focus:border-orange-500 transition">
+                    <option value="CREDIT">Credit Card (Visa / Mastercard)</option>
+                    <option value="DEBIT">Debit Card (Direct Bank Transfer)</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="cardholderName" class="block text-sm font-bold text-gray-700 mb-2">Cardholder Full Name</label>
+                <input type="text" name="cardholderName" id="cardholderName" required placeholder="e.g. Alice Customer"
+                       class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium outline-none focus:border-orange-500 transition">
+            </div>
+
+            <div>
+                <label for="cardNumber" class="block text-sm font-bold text-gray-700 mb-2">Card Number (16 Digits)</label>
+                <input type="text" name="cardNumber" id="cardNumber" required maxlength="16" pattern="\d{16}" placeholder="4111222233334444"
+                       class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium outline-none focus:border-orange-500 transition font-mono tracking-widest">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="expiryDate" class="block text-sm font-bold text-gray-700 mb-2">Expiry Date (MM/YY)</label>
+                    <input type="text" name="expiryDate" id="expiryDate" required placeholder="12/28" maxlength="5"
+                           class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium outline-none focus:border-orange-500 transition font-mono">
+                </div>
+
+                <div>
+                    <label for="cvv" class="block text-sm font-bold text-gray-700 mb-2">CVV Security Code</label>
+                    <input type="password" name="cvv" id="cvv" required maxlength="4" placeholder="•••"
+                           class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium outline-none focus:border-orange-500 transition font-mono">
+                </div>
+            </div>
+
+            <div id="specificDetailsContainer">
+                <label id="specificDetailsLabel" for="specificDetails" class="block text-sm font-bold text-gray-700 mb-2">Credit Limit (Rs.)</label>
+                <input type="text" name="specificDetails" id="specificDetails" placeholder="50000"
+                       class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium outline-none focus:border-orange-500 transition">
+            </div>
+
+            <div class="pt-4 border-t border-gray-100 flex gap-3">
+                <a href="/payment-methods.html" class="w-1/2 py-3 px-4 text-center border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-100 transition">Cancel</a>
+                <button type="submit"
+                        class="w-1/2 py-3 px-4 rounded-xl text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/20 transition">
+                    Save Card
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const username = localStorage.getItem('username');
+    if (!username) {
+        window.location.href = '/login.html';
+    }
+
+    function updateSpecificFields() {
+        const type = document.getElementById("cardType").value;
+        const label = document.getElementById("specificDetailsLabel");
+        const input = document.getElementById("specificDetails");
+
+        if (type === "CREDIT") {
+            label.innerText = "Credit Limit (Rs.)";
+            input.type = "number";
+            input.placeholder = "e.g., 50000";
+        } else if (type === "DEBIT") {
+            label.innerText = "Bank Name";
+            input.type = "text";
+            input.placeholder = "e.g., Commercial Bank";
+        }
+    }
+
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const fd = new FormData(this);
+        const params = new URLSearchParams();
+        params.append('username', username);
+        params.append('cardType', fd.get('cardType'));
+        params.append('cardholderName', fd.get('cardholderName'));
+        params.append('cardNumber', fd.get('cardNumber'));
+        params.append('expiryDate', fd.get('expiryDate'));
+        params.append('cvv', fd.get('cvv'));
+        params.append('specificDetails', fd.get('specificDetails') || '');
+
+        fetch('http://localhost:8080/api/payment/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '/payment-methods.html';
+            } else {
+                alert(data.error || 'Failed to save card');
+            }
+        })
+        .catch(err => {
+            alert('Server error saving payment method');
+        });
+    });
+
+    updateSpecificFields();
+</script>
+<script src="/js/navbar.js"></script>
+</body>
+</html>

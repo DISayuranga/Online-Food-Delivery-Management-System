@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Review - CraveBite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col selection:bg-orange-500 selection:text-white">
+
+<!-- Dynamic Navbar -->
+<nav id="cravebite-nav"></nav>
+
+<div class="flex-grow flex items-center justify-center p-4 py-12">
+<div class="w-full max-w-md bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+    <div class="px-8 py-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+        <div>
+            <h2 class="text-xl font-bold text-gray-900 tracking-tight">Edit Feedback</h2>
+            <p id="targetNameDisplay" class="text-xs text-gray-500 font-medium mt-0.5">Loading...</p>
+        </div>
+        <a href="/my-reviews.html" class="text-gray-400 hover:text-gray-600 font-bold text-lg">✕</a>
+    </div>
+
+    <form id="editReviewForm" class="p-8 space-y-6">
+        <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">Rating</label>
+            <select name="rating" id="reviewRating" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium outline-none focus:border-orange-500 transition">
+                <option value="5">⭐⭐⭐⭐⭐ (5) Outstanding</option>
+                <option value="4">⭐⭐⭐⭐ (4) Good</option>
+                <option value="3">⭐⭐⭐ (3) Okay</option>
+                <option value="2">⭐⭐ (2) Poor</option>
+                <option value="1">⭐ (1) Terrible</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">Comments</label>
+            <textarea name="comments" id="reviewComments" rows="4" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium outline-none focus:border-orange-500 transition"></textarea>
+        </div>
+
+        <div class="flex gap-3">
+            <a href="/my-reviews.html" class="w-1/2 py-3 px-4 text-center border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-100 transition">Cancel</a>
+            <button type="submit" class="w-1/2 bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-orange-500 transition shadow-lg">
+                Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const username = localStorage.getItem('username');
+    if (!username) {
+        window.location.href = '/login.html';
+    }
+
+    const reviewId = new URLSearchParams(window.location.search).get('id');
+    if (!reviewId) {
+        alert('Invalid review ID');
+        window.location.href = '/my-reviews.html';
+    }
+
+    fetch(`http://localhost:8080/api/reviews/edit/${reviewId}?username=${encodeURIComponent(username)}`)
+        .then(res => {
+            if (!res.ok) throw new Error('Not found');
+            return res.json();
+        })
+        .then(r => {
+            document.getElementById('targetNameDisplay').innerText = `${r.reviewCategory}: ${r.reviewTargetName}`;
+            document.getElementById('reviewRating').value = r.rating;
+            document.getElementById('reviewComments').value = r.comments;
+        })
+        .catch(err => {
+            alert('Failed to load review');
+            window.location.href = '/my-reviews.html';
+        });
+
+    document.getElementById('editReviewForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const fd = new FormData(this);
+        const params = new URLSearchParams();
+        params.append('username', username);
+        params.append('rating', fd.get('rating'));
+        params.append('comments', fd.get('comments'));
+
+        fetch(`http://localhost:8080/api/reviews/edit/${reviewId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '/my-reviews.html';
+            } else {
+                alert(data.error || 'Failed to update review');
+            }
+        })
+        .catch(err => {
+            alert('Server error updating review');
+        });
+    });
+</script>
+<script src="/js/navbar.js"></script>
+</div>
+</body>
+</html>

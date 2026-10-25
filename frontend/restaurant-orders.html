@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Orders - CraveBite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Outfit', sans-serif; }</style>
+</head>
+<body class="bg-gray-50 min-h-screen selection:bg-orange-500 selection:text-white flex flex-col">
+
+<!-- Dynamic Role Navbar -->
+<nav id="cravebite-nav"></nav>
+
+<main class="flex-grow max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 pb-6 border-b border-gray-200">
+        <div>
+            <div class="flex items-center gap-2">
+                <span class="bg-amber-100 text-amber-800 font-extrabold px-3 py-1 rounded-full text-xs uppercase tracking-wider">Kitchen Console</span>
+                <span id="owner-name" class="text-xs text-gray-500 font-medium"></span>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-black text-gray-900 tracking-tight mt-1">Live Restaurant Orders</h1>
+            <p class="text-gray-500 text-sm">Review customer orders, inspect delivery locations, prepare dishes, and dispatch to riders.</p>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="loadOrders()" class="bg-white hover:bg-gray-100 text-gray-700 px-4 py-2.5 rounded-2xl border border-gray-200 font-bold transition flex items-center gap-2 text-sm">
+                <span>🔄</span> Refresh
+            </button>
+            <a href="/product-add.html" class="bg-gray-900 hover:bg-orange-500 text-white px-5 py-2.5 rounded-2xl font-bold transition text-sm flex items-center gap-2 shadow">
+                <span>+</span> Add Dish
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div class="flex space-x-2 mb-6 overflow-x-auto pb-2">
+        <button onclick="filterStatus('ALL')" id="filter-ALL" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-orange-500 text-white shadow-sm">All Orders</button>
+        <button onclick="filterStatus('PLACED')" id="filter-PLACED" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200">New (Placed)</button>
+        <button onclick="filterStatus('PREPARING')" id="filter-PREPARING" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200">Preparing in Kitchen</button>
+        <button onclick="filterStatus('OUT_FOR_DELIVERY')" id="filter-OUT_FOR_DELIVERY" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200">Out for Delivery</button>
+    </div>
+
+    <!-- Orders Container -->
+    <div id="orders-container" class="space-y-6">
+        <div class="bg-white p-12 rounded-3xl border border-gray-100 text-center">
+            <p class="text-gray-400 font-medium animate-pulse">Fetching kitchen orders...</p>
+        </div>
+    </div>
+</main>
+
+<footer class="bg-gray-900 py-8 text-gray-400 mt-20">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs">
+        <p>&copy; 2026 CraveBite Inc. Restaurant Operations.</p>
+    </div>
+</footer>
+
+<script src="/js/navbar.js"></script>
+<script>
+    const username = localStorage.getItem('username');
+    const role = (localStorage.getItem('role') || '').toUpperCase();
+
+    if (!username || (role !== 'RESTAURANT_OWNER' && role !== 'ADMIN')) {
+        alert('Access Restricted: Please login as a Restaurant Owner.');
+        window.location.href = '/login.html';
+    }
+
+    document.getElementById('owner-name').innerText = `@${username}`;
+
+    let cachedOrders = [];
+    let currentFilter = 'ALL';
+
+    function filterStatus(status) {
+        currentFilter = status;
+        document.querySelectorAll('.status-btn').forEach(b => {
+            b.className = 'status-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200';
+        });
+        const activeBtn = document.getElementById(`filter-${status}`);
+        if (activeBtn) {
+            activeBtn.className = 'status-btn px-4 py-2 rounded-xl text-xs font-bold bg-orange-500 text-white shadow-sm';
+        }
+        renderOrders();
+    }
+
+    function loadOrders() {
+        fetch(`http://localhost:8080/api/orders/tracking?username=${encodeURIComponent(username)}`)
+            .then(r => r.json())
+            .then(data => {
+                cachedOrders = data.orders || [];
+                renderOrders();
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('orders-container').innerHTML = `
+                    <div class="bg-white p-12 rounded-3xl border border-red-100 text-center text-red-500">
+                        Failed to connect to backend server.
+                    </div>
+                `;
+            });
+    }
+
+    function getGoogleMapsUrl(address) {
+        if (!address) return 'https://www.google.com/maps';
+        const match = address.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+        if (match) {
+            return `https://www.google.com/maps/search/?api=1&query=${match[1]},${match[2]}`;
+        }
+        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+    }
+
+    function renderOrders() {
+        const container = document.getElementById('orders-container');
+        const orders = currentFilter === 'ALL' ? cachedOrders : cachedOrders.filter(o => o.orderStatus === currentFilter);
+
+        if (!orders.length) {
+            container.innerHTML = `
+                <div class="bg-white p-12 rounded-3xl shadow-sm border border-gray-100 text-center">
+                    <span class="text-5xl block mb-4">📭</span>
+                    <h3 class="text-xl font-bold text-gray-900">No matching orders right now</h3>
+                    <p class="text-gray-500 text-sm mt-1">New incoming customer orders will appear here automatically.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = orders.map(o => {
+            let statusBadge = '';
+            let actionButtons = '';
+
+            if (o.orderStatus === 'PLACED') {
+                statusBadge = '<span class="px-3 py-1 text-xs font-black rounded-full bg-blue-100 text-blue-700 uppercase tracking-wider">New Order</span>';
+                actionButtons = `
+                    <button onclick="advance(${o.id}, 'PREPARING')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition shadow-md shadow-amber-500/20 flex items-center gap-1">
+                        <span>👨‍🍳</span> Accept & Start Preparing
+                    </button>
+                    <button onclick="advance(${o.id}, 'CANCELLED')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 px-4 rounded-xl text-sm transition border border-red-200">
+                        Cancel Order
+                    </button>
+                `;
+            } else if (o.orderStatus === 'PREPARING') {
+                statusBadge = '<span class="px-3 py-1 text-xs font-black rounded-full bg-amber-100 text-amber-700 uppercase tracking-wider">In Kitchen</span>';
+                actionButtons = `
+                    <button onclick="advance(${o.id}, 'OUT_FOR_DELIVERY')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition shadow-md shadow-green-600/20 flex items-center gap-1">
+                        <span>🛵</span> Ready for Delivery (Handover to Rider)
+                    </button>
+                    <button onclick="advance(${o.id}, 'CANCELLED')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 px-4 rounded-xl text-sm transition border border-red-200">
+                        Cancel Order
+                    </button>
+                `;
+            } else if (o.orderStatus === 'OUT_FOR_DELIVERY') {
+                statusBadge = '<span class="px-3 py-1 text-xs font-black rounded-full bg-purple-100 text-purple-700 uppercase tracking-wider">Dispatched</span>';
+                actionButtons = `
+                    <span class="text-xs text-gray-500 font-bold bg-gray-100 px-3 py-2 rounded-xl">
+                        Rider: ${o.riderName || 'Awaiting Pickup by Rider'}
+                    </span>
+                `;
+            } else if (o.orderStatus === 'DELIVERED') {
+                statusBadge = '<span class="px-3 py-1 text-xs font-black rounded-full bg-green-100 text-green-700 uppercase tracking-wider">Delivered</span>';
+            } else if (o.orderStatus === 'CANCELLED') {
+                statusBadge = '<span class="px-3 py-1 text-xs font-black rounded-full bg-red-100 text-red-700 uppercase tracking-wider">Cancelled</span>';
+            }
+
+            const formattedDate = o.orderDate ? new Date(o.orderDate).toLocaleString() : 'Just now';
+            const mapsUrl = getGoogleMapsUrl(o.deliveryAddress);
+
+            let itemsHtml = '';
+            if (o.itemsList && o.itemsList.length > 0) {
+                itemsHtml = `
+                    <div class="space-y-2 mt-2 max-h-48 overflow-y-auto pr-1">
+                        ${o.itemsList.map(item => {
+                            let imgTag = '';
+                            if (item.imageUrl) {
+                                imgTag = `<img src="${item.imageUrl}" alt="${item.name}" class="w-11 h-11 rounded-xl object-cover border border-gray-200 shrink-0 shadow-sm">`;
+                            } else {
+                                imgTag = `<div class="w-11 h-11 rounded-xl bg-orange-100 flex items-center justify-center text-xl shrink-0">🍛</div>`;
+                            }
+                            return `
+                                <div class="flex items-center justify-between p-2 bg-white rounded-xl border border-gray-100 gap-3 shadow-xs">
+                                    <div class="flex items-center gap-2.5 overflow-hidden">
+                                        ${imgTag}
+                                        <div class="truncate">
+                                            <p class="text-xs font-extrabold text-gray-900 truncate">${item.name}</p>
+                                            <span class="text-[10px] text-gray-500 font-semibold">${item.quantity}x ${item.itemType ? `(${item.itemType})` : ''}</span>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-black text-gray-800 shrink-0">${item.price ? 'Rs. ' + Number(item.price).toFixed(2) : ''}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            } else {
+                itemsHtml = `<p class="text-sm font-bold text-gray-900">${o.itemsSummary || 'Food items'}</p>`;
+            }
+
+            return `
+                <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 hover:border-gray-200 transition">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-gray-100 gap-2 mb-4">
+                        <div>
+                            <div class="flex items-center gap-3">
+                                <h3 class="text-xl font-black text-gray-900">Order #${o.id}</h3>
+                                ${statusBadge}
+                            </div>
+                            <span class="text-xs text-gray-400 font-medium">${formattedDate}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block">Order Total</span>
+                            <span class="text-2xl font-black text-orange-600">Rs. ${(o.totalAmount || 0).toFixed(2)}</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-4">
+                        <!-- Customer & Delivery Location Details -->
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex flex-col justify-between">
+                            <div>
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Customer & Destination</h4>
+                                <p class="font-bold text-gray-900 text-sm">👤 ${o.customerName || 'Customer'}</p>
+                                <p class="text-xs text-gray-600 mt-1">📞 Phone: <span class="font-bold text-gray-900">${o.customerPhone || 'N/A'}</span></p>
+                                <p class="text-xs text-gray-600 mt-1">📍 Address: <span class="font-medium text-gray-800">${o.deliveryAddress || 'Standard Delivery'}</span></p>
+                            </div>
+                            <div class="mt-3 pt-2.5 border-t border-gray-200/70 flex items-center justify-between">
+                                <a href="${mapsUrl}" target="_blank" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                                    <span>🗺️</span> View on Google Maps &rarr;
+                                </a>
+                                ${o.customerPhone && o.customerPhone !== 'N/A' ? `<a href="tel:${o.customerPhone}" class="text-xs font-bold text-gray-500 hover:text-gray-900 flex items-center gap-1">📞 Call</a>` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Ordered Dishes Details -->
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Kitchen Prep Items</h4>
+                            ${itemsHtml}
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-gray-100">
+                        ${actionButtons}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function advance(orderId, nextStatus) {
+        if (nextStatus === 'CANCELLED') {
+            if (!confirm('Are you sure you want to cancel this order?')) return;
+        }
+
+        fetch(`http://localhost:8080/api/orders/advance/${orderId}?username=${encodeURIComponent(username)}&nextStatus=${encodeURIComponent(nextStatus)}`, {
+            method: 'POST'
+        })
+        .then(r => r.json())
+        .then(data => {
+            loadOrders();
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Failed to update order status');
+        });
+    }
+
+    loadOrders();
+    // Auto-refresh every 15 seconds for kitchen display
+    setInterval(loadOrders, 15000);
+</script>
+</body>
+</html>
