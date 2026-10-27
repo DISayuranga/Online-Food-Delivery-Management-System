@@ -55,24 +55,61 @@
                 
                 <!-- Delivery Details -->
                 <div>
-                    <h2 class="text-xl font-semibold mb-4 border-b pb-2">1. Delivery Details</h2>
+                    <h2 class="text-xl font-semibold mb-4 border-b pb-2">1. Delivery Address</h2>
                     <label class="block text-sm font-medium text-gray-700 mb-3">Select Delivery Address</label>
                     <div id="address-list" class="space-y-3">
                         <!-- Addresses here -->
                     </div>
                 </div>
 
+                <!-- Delivery Schedule -->
+                <div>
+                    <h2 class="text-xl font-semibold mb-4 border-b pb-2">2. Delivery Timing & Schedule</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <label id="lbl-instant" class="border-2 border-orange-500 bg-orange-50/50 p-4 rounded-2xl cursor-pointer flex items-center gap-3 transition">
+                            <input type="radio" name="deliveryTiming" value="instant" checked onchange="toggleScheduleOptions(false)" class="text-orange-500 focus:ring-orange-500 h-4 w-4">
+                            <div>
+                                <span class="font-bold text-gray-900 block text-sm">⚡ Instant Delivery</span>
+                                <span class="text-xs text-gray-500">ASAP (Standard 20 - 30 mins)</span>
+                            </div>
+                        </label>
+                        <label id="lbl-scheduled" class="border-2 border-gray-200 hover:border-orange-300 p-4 rounded-2xl cursor-pointer flex items-center gap-3 transition">
+                            <input type="radio" name="deliveryTiming" value="scheduled" onchange="toggleScheduleOptions(true)" class="text-orange-500 focus:ring-orange-500 h-4 w-4">
+                            <div>
+                                <span class="font-bold text-gray-900 block text-sm">⏰ Schedule for Later</span>
+                                <span class="text-xs text-gray-500">Choose custom date & delivery time</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Hidden schedule picker fields -->
+                    <div id="schedule-picker-box" class="hidden bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-3">
+                        <p class="text-xs font-bold text-gray-700">Select Desired Delivery Time:</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[11px] font-bold text-gray-500 uppercase">Delivery Date</label>
+                                <input type="date" id="schedule-date" class="w-full mt-1 p-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-orange-500">
+                            </div>
+                            <div>
+                                <label class="text-[11px] font-bold text-gray-500 uppercase">Delivery Time</label>
+                                <input type="time" id="schedule-time" class="w-full mt-1 p-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-orange-500">
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-gray-500 italic">💡 The restaurant will prepare and hand over your meal to a rider just in time for your chosen schedule.</p>
+                    </div>
+                </div>
+
                 <!-- Payment Details -->
                 <div>
-                    <h2 class="text-xl font-semibold mb-4 border-b pb-2">2. Payment Details</h2>
+                    <h2 class="text-xl font-semibold mb-4 border-b pb-2">3. Payment Details</h2>
                     <label class="block text-sm font-medium text-gray-700 mb-3">Select Saved Card</label>
                     <div id="payment-list" class="space-y-3">
                         <!-- Payments here -->
                     </div>
                 </div>
 
-                <button type="submit" id="pay-btn" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Pay Securely
+                <button type="submit" id="pay-btn" class="w-full flex justify-center py-4 px-6 border border-transparent rounded-2xl shadow-lg text-base font-bold text-white bg-orange-500 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors">
+                    Confirm & Place Order
                 </button>
             </form>
             
@@ -179,10 +216,52 @@
         }
     });
 
+    function toggleScheduleOptions(isScheduled) {
+        const pickerBox = document.getElementById('schedule-picker-box');
+        const lblInstant = document.getElementById('lbl-instant');
+        const lblScheduled = document.getElementById('lbl-scheduled');
+        const dateInput = document.getElementById('schedule-date');
+        const timeInput = document.getElementById('schedule-time');
+
+        if (isScheduled) {
+            pickerBox.classList.remove('hidden');
+            lblScheduled.className = "border-2 border-orange-500 bg-orange-50/50 p-4 rounded-2xl cursor-pointer flex items-center gap-3 transition";
+            lblInstant.className = "border-2 border-gray-200 hover:border-orange-300 p-4 rounded-2xl cursor-pointer flex items-center gap-3 transition";
+            
+            // Default date: tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            dateInput.min = new Date().toISOString().split('T')[0];
+            dateInput.value = tomorrow.toISOString().split('T')[0];
+            dateInput.required = true;
+            timeInput.value = "12:30";
+            timeInput.required = true;
+        } else {
+            pickerBox.classList.add('hidden');
+            lblInstant.className = "border-2 border-orange-500 bg-orange-50/50 p-4 rounded-2xl cursor-pointer flex items-center gap-3 transition";
+            lblScheduled.className = "border-2 border-gray-200 hover:border-orange-300 p-4 rounded-2xl cursor-pointer flex items-center gap-3 transition";
+            dateInput.required = false;
+            timeInput.required = false;
+        }
+    }
+
     document.getElementById('checkout-form').addEventListener('submit', function(e) {
         e.preventDefault();
         
         const formData = new FormData(this);
+        
+        const timingChoice = document.querySelector('input[name="deliveryTiming"]:checked')?.value;
+        if (timingChoice === 'scheduled') {
+            const dateVal = document.getElementById('schedule-date').value;
+            const timeVal = document.getElementById('schedule-time').value;
+            if (!dateVal || !timeVal) {
+                alert('Please select both delivery date and time for scheduled delivery.');
+                return;
+            }
+            formData.append('scheduledTime', `Scheduled: ${dateVal} at ${timeVal}`);
+        } else {
+            formData.append('scheduledTime', 'Instant Delivery (ASAP)');
+        }
         
         fetch(`http://localhost:8080/api/payment/process?username=${username}`, {
             method: 'POST',

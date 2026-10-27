@@ -30,6 +30,9 @@ public class OrderController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private com.fooddelivery.repository.FoodItemRepository foodItemRepository;
+
     @GetMapping("/tracking")
     public ResponseEntity<?> trackActiveOrders(@RequestParam String username) {
         User user = userRepository.findByUsername(username).orElse(null);
@@ -310,6 +313,7 @@ public class OrderController {
         map.put("customerPhone", order.getCustomer().getPhoneNumber() != null ? order.getCustomer().getPhoneNumber() : "N/A");
         map.put("restaurantName", order.getRestaurant().getRestaurantName());
         map.put("riderName", order.getRider() != null ? order.getRider().getFullName() : null);
+        map.put("scheduledTime", order.getScheduledTime());
 
         List<Map<String, Object>> itemsList = new ArrayList<>();
         if (order.getItemsJson() != null && !order.getItemsJson().trim().isEmpty()) {
@@ -322,13 +326,45 @@ public class OrderController {
             String[] parts = order.getItemsSummary().split(",\\s*");
             for (String p : parts) {
                 Map<String, Object> im = new HashMap<>();
-                im.put("name", p);
-                im.put("quantity", 1);
+                String trimmed = p.trim();
+                int qty = 1;
+                String dishName = trimmed;
+                if (trimmed.matches("^\\d+x\\s+.*")) {
+                    int xIndex = trimmed.indexOf("x ");
+                    try {
+                        qty = Integer.parseInt(trimmed.substring(0, xIndex));
+                        dishName = trimmed.substring(xIndex + 2);
+                    } catch (Exception ignored) {}
+                }
+                im.put("name", dishName);
+                im.put("quantity", qty);
                 im.put("price", 0.0);
                 im.put("imageUrl", "");
                 itemsList.add(im);
             }
         }
+
+        // Enrich any missing dish images or prices from FoodItemRepository
+        List<FoodItem> allFood = foodItemRepository.findAll();
+        for (Map<String, Object> im : itemsList) {
+            String name = (String) im.get("name");
+            if (name != null) {
+                FoodItem matched = allFood.stream().filter(f -> f.getName().equalsIgnoreCase(name.trim())).findFirst().orElse(null);
+                if (matched != null) {
+                    if (im.get("imageUrl") == null || im.get("imageUrl").toString().isEmpty()) {
+                        im.put("imageUrl", matched.getImageUrl());
+                    }
+                    if (im.get("price") == null || ((Number) im.get("price")).doubleValue() <= 0.0) {
+                        int q = im.get("quantity") instanceof Number ? ((Number) im.get("quantity")).intValue() : 1;
+                        im.put("price", matched.getFinalPrice() * q);
+                    }
+                    if (im.get("itemType") == null || im.get("itemType").toString().isEmpty()) {
+                        im.put("itemType", matched.getItemType());
+                    }
+                }
+            }
+        }
+
         map.put("itemsList", itemsList);
 
         return map;

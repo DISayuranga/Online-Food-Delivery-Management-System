@@ -196,7 +196,8 @@ public class PaymentController {
     public ResponseEntity<?> processPayment(@RequestParam String username,
                                             @RequestParam Long paymentMethodId, 
                                             @RequestParam String deliveryAddress,
-                                            @RequestParam double amount) {
+                                            @RequestParam double amount,
+                                            @RequestParam(required = false) String scheduledTime) {
         Customer customer = getCustomerByUsername(username);
         if (customer == null) return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
 
@@ -249,6 +250,7 @@ public class PaymentController {
             order.setOrderStatus("PLACED");
             order.setDeliveryAddress(deliveryAddress != null && !deliveryAddress.trim().isEmpty() ? deliveryAddress : "Default Address");
             order.setOrderDate(LocalDateTime.now());
+            order.setScheduledTime(scheduledTime != null && !scheduledTime.trim().isEmpty() ? scheduledTime.trim() : "Instant Delivery");
             
             orderRepository.save(order);
         }

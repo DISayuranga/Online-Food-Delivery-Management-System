@@ -47,6 +47,9 @@ public class OrderRecord {
     @Column(columnDefinition = "TEXT")
     private String itemsJson;
 
+    @Column
+    private String scheduledTime;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Customer getCustomer() { return customer; }
@@ -67,4 +70,6 @@ public class OrderRecord {
     public void setItemsSummary(String itemsSummary) { this.itemsSummary = itemsSummary; }
     public String getItemsJson() { return itemsJson; }
     public void setItemsJson(String itemsJson) { this.itemsJson = itemsJson; }
+    public String getScheduledTime() { return scheduledTime; }
+    public void setScheduledTime(String scheduledTime) { this.scheduledTime = scheduledTime; }
 }
