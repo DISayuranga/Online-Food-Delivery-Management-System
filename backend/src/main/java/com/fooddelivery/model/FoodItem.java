@@ -32,6 +32,9 @@ public abstract class FoodItem {
     @Column(nullable = false)
     private boolean available = true;
 
+    @Column(name = "category")
+    private String category;
+
     // A food item belongs to a specific restaurant owner
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
@@ -103,6 +106,36 @@ public abstract class FoodItem {
 
     public void setOwner(RestaurantOwner owner) {
         this.owner = owner;
+    }
+
+    public String getCategory() {
+        if (category != null && !category.trim().isEmpty()) {
+            return category;
+        }
+        String type = getItemType();
+        if ("Dessert".equalsIgnoreCase(type)) return "Desserts";
+        if ("Beverage".equalsIgnoreCase(type)) return "Beverages";
+        return "Main Course";
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public Long getOwnerId() {
+        return owner != null ? owner.getId() : null;
+    }
+
+    public String getRestaurantName() {
+        if (owner != null) {
+            if (owner.getRestaurantName() != null && !owner.getRestaurantName().isBlank()) {
+                return owner.getRestaurantName();
+            }
+            if (owner.getFullName() != null && !owner.getFullName().isBlank()) {
+                return owner.getFullName();
+            }
+        }
+        return "CraveBite Kitchen";
     }
 
     @Override

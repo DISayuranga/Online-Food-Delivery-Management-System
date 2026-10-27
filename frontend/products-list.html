@@ -15,113 +15,316 @@
 <!-- Dynamic Navbar -->
 <nav id="cravebite-nav"></nav>
 
-<div class="max-w-7xl mx-auto mt-12 px-4 sm:px-6 lg:px-8 pb-24">
+<div class="max-w-7xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 pb-24">
     
-    <div class="flex justify-between items-end mb-10">
+    <div class="flex flex-col md:flex-row justify-between md:items-end mb-8 gap-4">
         <div>
-            <h1 class="text-4xl font-black text-gray-900 tracking-tight">Order from Local Favorites</h1>
-            <p class="text-gray-500 mt-2 text-lg">Discover delicious food delivered fast.</p>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-black uppercase tracking-wider mb-2">
+                🍽️ CraveBite Menu
+            </div>
+            <h1 id="page-title" class="text-3xl md:text-5xl font-black text-gray-900 tracking-tight">Order from Local Favorites</h1>
+            <p id="page-subtitle" class="text-gray-500 mt-2 text-base md:text-lg">Discover delicious culinary creations prepared fresh and delivered fast.</p>
+        </div>
+        <div id="filter-banner" class="hidden items-center gap-3 bg-orange-50 border border-orange-200 px-4 py-2.5 rounded-2xl">
+            <span id="filter-text" class="text-xs font-bold text-orange-900"></span>
+            <button onclick="clearFilters()" class="text-xs font-black text-orange-600 hover:text-orange-800 bg-white px-2.5 py-1 rounded-lg border border-orange-200 shadow-sm transition">
+                ✕ Clear Filter
+            </button>
         </div>
     </div>
 
+    <!-- Category Filters -->
+    <div class="mb-8 overflow-x-auto pb-2 no-scrollbar">
+        <div class="flex items-center gap-2 min-w-max">
+            <button onclick="setCategoryFilter('ALL')" id="cat-ALL" class="cat-pill px-5 py-2.5 rounded-full text-xs font-bold transition shadow-sm bg-orange-500 text-white">
+                All Items
+            </button>
+            <button onclick="setCategoryFilter('Burgers')" id="cat-Burgers" class="cat-pill px-5 py-2.5 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">
+                🍔 Burgers
+            </button>
+            <button onclick="setCategoryFilter('Pizza')" id="cat-Pizza" class="cat-pill px-5 py-2.5 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">
+                🍕 Pizza
+            </button>
+            <button onclick="setCategoryFilter('Lunch')" id="cat-Lunch" class="cat-pill px-5 py-2.5 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">
+                🍱 Lunch
+            </button>
+            <button onclick="setCategoryFilter('Dinner')" id="cat-Dinner" class="cat-pill px-5 py-2.5 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">
+                🍽️ Dinner
+            </button>
+            <button onclick="setCategoryFilter('Juice')" id="cat-Juice" class="cat-pill px-5 py-2.5 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">
+                🧃 Juice
+            </button>
+            <button onclick="setCategoryFilter('Sushi')" id="cat-Sushi" class="cat-pill px-5 py-2.5 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">
+                🍣 Sushi
+            </button>
+            <button onclick="setCategoryFilter('Healthy')" id="cat-Healthy" class="cat-pill px-5 py-2.5 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">
+                🥗 Healthy
+            </button>
+            <button onclick="setCategoryFilter('Desserts')" id="cat-Desserts" class="cat-pill px-5 py-2.5 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">
+                🍰 Desserts
+            </button>
+            <button onclick="setCategoryFilter('Breakfast')" id="cat-Breakfast" class="cat-pill px-5 py-2.5 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">
+                🍳 Breakfast
+            </button>
+            <button onclick="setCategoryFilter('Beverages')" id="cat-Beverages" class="cat-pill px-5 py-2.5 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">
+                🥤 Beverages
+            </button>
+            <button onclick="setCategoryFilter('Main Course')" id="cat-MainCourse" class="cat-pill px-5 py-2.5 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">
+                🍛 Main Course
+            </button>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
     <div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         <!-- Products will be loaded here via JavaScript -->
-        <div class="col-span-full text-center py-12 text-gray-500 font-medium animate-pulse">
-            Loading delicious food...
+        <div class="col-span-full text-center py-16 text-gray-400 font-medium animate-pulse">
+            Loading delicious food items...
         </div>
     </div>
 </div>
 
 <script>
+    let allProducts = [];
+    let currentCategory = 'ALL';
+    let currentRestaurantId = null;
+    let currentRestaurantName = '';
+
     document.addEventListener("DOMContentLoaded", () => {
-        fetch('http://localhost:8080/api/products/list')
+        const urlParams = new URLSearchParams(window.location.search);
+        const catParam = urlParams.get('category');
+        const restIdParam = urlParams.get('restaurantId');
+        const restNameParam = urlParams.get('restaurantName');
+
+        if (catParam) {
+            currentCategory = catParam;
+        }
+        if (restIdParam) {
+            currentRestaurantId = restIdParam;
+            currentRestaurantName = restNameParam || 'Restaurant';
+            document.getElementById('page-title').innerText = `${currentRestaurantName} Menu`;
+            document.getElementById('page-subtitle').innerText = `Freshly prepared dishes crafted exclusively by ${currentRestaurantName}.`;
+        }
+
+        loadProducts();
+    });
+
+    function loadProducts() {
+        let url = 'http://localhost:8080/api/products/list';
+        fetch(url)
             .then(response => response.json())
             .then(data => {
-                const container = document.getElementById('products-container');
-                container.innerHTML = '';
-                
-                if (data.length === 0) {
-                    container.innerHTML = `
-                        <div class="col-span-full bg-white p-12 rounded-3xl shadow-sm border border-gray-100 text-center">
-                            <span class="text-6xl mb-4 block">🍳</span>
-                            <h3 class="text-2xl font-bold text-gray-900">No items on the menu yet!</h3>
-                            <p class="text-gray-500 mt-2">Check back later for delicious additions.</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                data.forEach(item => {
-                    const basePrice = item.basePrice.toFixed(2);
-                    const finalPrice = (item.finalPrice !== undefined && item.finalPrice !== null ? item.finalPrice : item.basePrice).toFixed(2);
-                    const itemType = item.itemType || 'Food';
-                    const typeUpper = itemType.toUpperCase();
-                    
-                    let imageHtml = '';
-                    if (item.imageUrl) {
-                        imageHtml = `
-                            <div class="h-48 bg-gray-100 relative overflow-hidden flex items-center justify-center">
-                                <img src="${item.imageUrl}" alt="${item.name}" class="w-full h-full object-cover">
-                                <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-gray-900 shadow-sm border border-gray-200">
-                                    ${itemType}
-                                </div>
-                            </div>`;
-                    } else {
-                        let emoji = '🍛';
-                        if (typeUpper.includes('DESSERT')) emoji = '🍰';
-                        else if (typeUpper.includes('BEVERAGE')) emoji = '🥤';
-                        else if (typeUpper.includes('MAIN')) emoji = '🍛';
-                        
-                        imageHtml = `
-                            <div class="h-48 bg-gray-100 relative overflow-hidden flex items-center justify-center text-5xl">
-                                ${emoji}
-                                <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-gray-900 shadow-sm border border-gray-200">
-                                    ${itemType}
-                                </div>
-                            </div>`;
-                    }
-
-                    let actionHtml = '';
-                    if (item.available) {
-                        actionHtml = `
-                                <button type="button" onclick="addToCart(${item.id}, 1)" class="w-full bg-gray-100 hover:bg-orange-500 text-gray-900 hover:text-white font-bold py-3 px-4 rounded-xl transition duration-200 flex justify-center items-center gap-2">
-                                    Add to Cart <span>+</span>
-                                </button>`;
-                    } else {
-                        actionHtml = `
-                            <div class="mt-auto w-full bg-gray-100 text-gray-400 font-bold py-3 px-4 rounded-xl text-center cursor-not-allowed border border-gray-200">
-                                Sold Out
-                            </div>`;
-                    }
-
-                    const cardHtml = `
-                        <div class="bg-white rounded-3xl overflow-hidden shadow-lg shadow-gray-200/50 border border-gray-100 flex flex-col group hover:-translate-y-1 transition-transform duration-300 relative ${!item.available ? 'opacity-75' : ''}">
-                            ${imageHtml}
-                            <div class="p-6 flex-grow flex flex-col">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h3 class="text-xl font-bold text-gray-900 leading-tight">${item.name}</h3>
-                                    <div class="text-right">
-                                        <span class="text-xs text-gray-400 block line-through">Base: Rs. ${basePrice}</span>
-                                        <span class="text-lg font-black text-orange-500">Rs. ${finalPrice}</span>
-                                    </div>
-                                </div>
-                                <p class="text-gray-500 text-sm mb-6 flex-grow">${item.description || ''}</p>
-                                ${actionHtml}
-                            </div>
-                        </div>
-                    `;
-                    container.innerHTML += cardHtml;
-                });
+                allProducts = data || [];
+                applyFilters();
             })
             .catch(error => {
                 console.error("Error fetching products:", error);
                 document.getElementById('products-container').innerHTML = `
-                    <div class="col-span-full text-center py-12 text-red-500 font-bold">
-                        Failed to load products. Make sure the backend server is running.
+                    <div class="col-span-full bg-white p-12 rounded-3xl border border-red-200 text-center">
+                        <span class="text-5xl block mb-3">⚠️</span>
+                        <h3 class="text-xl font-bold text-red-600">Failed to load menu items</h3>
+                        <p class="text-gray-500 text-sm mt-1">Please ensure the backend server is running on port 8080.</p>
                     </div>
                 `;
             });
-    });
+    }
+
+    function setCategoryFilter(cat) {
+        currentCategory = cat;
+        // Update URL without full page reload
+        const url = new URL(window.location.href);
+        if (cat === 'ALL') {
+            url.searchParams.delete('category');
+        } else {
+            url.searchParams.set('category', cat);
+        }
+        window.history.replaceState({}, '', url);
+        applyFilters();
+    }
+
+    function clearFilters() {
+        currentCategory = 'ALL';
+        currentRestaurantId = null;
+        currentRestaurantName = '';
+        window.history.replaceState({}, '', '/products-list.html');
+        document.getElementById('page-title').innerText = 'Order from Local Favorites';
+        document.getElementById('page-subtitle').innerText = 'Discover delicious food delivered fast.';
+        applyFilters();
+    }
+
+    function applyFilters() {
+        updateFilterPillsUI();
+
+        let filtered = allProducts;
+
+        if (currentRestaurantId) {
+            filtered = filtered.filter(p => p.ownerId && String(p.ownerId) === String(currentRestaurantId));
+        }
+
+        if (currentCategory && currentCategory !== 'ALL') {
+            const catLower = currentCategory.toLowerCase();
+            filtered = filtered.filter(p => {
+                const itemCat = (p.category || '').toLowerCase();
+                const itemType = (p.itemType || '').toLowerCase();
+                return itemCat.includes(catLower) || itemType.includes(catLower);
+            });
+        }
+
+        // Update Filter Banner
+        const banner = document.getElementById('filter-banner');
+        const filterText = document.getElementById('filter-text');
+        const activeCriteria = [];
+        if (currentRestaurantId) {
+            activeCriteria.push(`Restaurant: <b>${currentRestaurantName || 'Selected'}</b>`);
+        }
+        if (currentCategory !== 'ALL') {
+            activeCriteria.push(`Category: <b>${currentCategory}</b>`);
+        }
+
+        if (activeCriteria.length > 0) {
+            banner.classList.remove('hidden');
+            banner.classList.add('flex');
+            filterText.innerHTML = `Showing ${filtered.length} item(s) for ${activeCriteria.join(' & ')}`;
+        } else {
+            banner.classList.add('hidden');
+            banner.classList.remove('flex');
+        }
+
+        renderProducts(filtered);
+    }
+
+    function resolveImageUrl(url) {
+        if (!url) return '';
+        if (url.startsWith('http://') || url.startsWith('https://')) return url;
+        if (url.startsWith('/')) {
+            if (window.location.port === '3000' || (window.location.port !== '8080' && window.location.port !== '')) {
+                return 'http://localhost:8080' + url;
+            }
+        }
+        return url;
+    }
+
+    function updateFilterPillsUI() {
+        document.querySelectorAll('.cat-pill').forEach(btn => {
+            btn.className = 'cat-pill px-5 py-2.5 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500';
+        });
+
+        let targetId = 'cat-ALL';
+        if (currentCategory === 'Burgers') targetId = 'cat-Burgers';
+        else if (currentCategory === 'Pizza') targetId = 'cat-Pizza';
+        else if (currentCategory === 'Lunch') targetId = 'cat-Lunch';
+        else if (currentCategory === 'Dinner') targetId = 'cat-Dinner';
+        else if (currentCategory === 'Juice') targetId = 'cat-Juice';
+        else if (currentCategory === 'Sushi') targetId = 'cat-Sushi';
+        else if (currentCategory === 'Healthy') targetId = 'cat-Healthy';
+        else if (currentCategory === 'Desserts') targetId = 'cat-Desserts';
+        else if (currentCategory === 'Breakfast') targetId = 'cat-Breakfast';
+        else if (currentCategory === 'Beverages') targetId = 'cat-Beverages';
+        else if (currentCategory === 'Main Course') targetId = 'cat-MainCourse';
+
+        const activeBtn = document.getElementById(targetId);
+        if (activeBtn) {
+            activeBtn.className = 'cat-pill px-5 py-2.5 rounded-full text-xs font-bold transition shadow-sm bg-orange-500 text-white';
+        }
+    }
+
+    function renderProducts(items) {
+        const container = document.getElementById('products-container');
+        container.innerHTML = '';
+
+        if (!items || items.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full bg-white p-12 rounded-3xl shadow-sm border border-gray-100 text-center">
+                    <span class="text-6xl mb-4 block">🍳</span>
+                    <h3 class="text-2xl font-bold text-gray-900">No dishes found</h3>
+                    <p class="text-gray-500 mt-2 text-sm">Try selecting another category or clear your active filter.</p>
+                    <button onclick="clearFilters()" class="mt-4 px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-xs transition">
+                        View All Dishes
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        items.forEach(item => {
+            const basePrice = (item.basePrice || 0).toFixed(2);
+            const finalPrice = (item.finalPrice !== undefined && item.finalPrice !== null ? item.finalPrice : item.basePrice).toFixed(2);
+            const itemCat = item.category || item.itemType || 'Main Course';
+            const restaurantName = item.restaurantName || 'Local Kitchen';
+            const imgUrl = resolveImageUrl(item.imageUrl);
+            
+            let imageHtml = '';
+            if (imgUrl) {
+                imageHtml = `
+                    <div class="h-52 bg-gray-100 relative overflow-hidden flex items-center justify-center">
+                        <img src="${imgUrl}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60'">
+                        <div class="absolute top-4 right-4 bg-white/95 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-gray-900 shadow-sm border border-gray-100">
+                            ${itemCat}
+                        </div>
+                    </div>`;
+            } else {
+                let emoji = '🍛';
+                const lowerCat = itemCat.toLowerCase();
+                if (lowerCat.includes('burger')) emoji = '🍔';
+                else if (lowerCat.includes('pizza')) emoji = '🍕';
+                else if (lowerCat.includes('lunch')) emoji = '🍱';
+                else if (lowerCat.includes('dinner')) emoji = '🍽️';
+                else if (lowerCat.includes('juice')) emoji = '🧃';
+                else if (lowerCat.includes('sushi')) emoji = '🍣';
+                else if (lowerCat.includes('dessert')) emoji = '🍰';
+                else if (lowerCat.includes('beverage')) emoji = '🥤';
+                else if (lowerCat.includes('healthy')) emoji = '🥗';
+                else if (lowerCat.includes('breakfast')) emoji = '🍳';
+                
+                imageHtml = `
+                    <div class="h-52 bg-orange-50/50 relative overflow-hidden flex items-center justify-center text-6xl group-hover:scale-105 transition-transform duration-500">
+                        ${emoji}
+                        <div class="absolute top-4 right-4 bg-white/95 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-gray-900 shadow-sm border border-gray-100">
+                            ${itemCat}
+                        </div>
+                    </div>`;
+            }
+
+            let actionHtml = '';
+            if (item.available) {
+                actionHtml = `
+                    <button type="button" onclick="addToCart(${item.id}, 1)" class="w-full bg-gray-900 hover:bg-orange-500 text-white font-bold py-3 px-4 rounded-2xl transition duration-200 flex justify-center items-center gap-2 text-sm shadow">
+                        Add to Cart <span>+</span>
+                    </button>`;
+            } else {
+                actionHtml = `
+                    <div class="w-full bg-gray-100 text-gray-400 font-bold py-3 px-4 rounded-2xl text-center cursor-not-allowed border border-gray-200 text-sm">
+                        Sold Out
+                    </div>`;
+            }
+
+            const cardHtml = `
+                <div class="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-100 flex flex-col justify-between group ${!item.available ? 'opacity-75' : ''}">
+                    <div>
+                        ${imageHtml}
+                        <div class="p-6">
+                            <div class="flex items-center gap-1.5 text-xs text-orange-600 font-bold mb-2">
+                                <span>🏪</span>
+                                <span class="truncate">${restaurantName}</span>
+                            </div>
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="text-lg font-black text-gray-900 leading-tight group-hover:text-orange-500 transition-colors">${item.name}</h3>
+                                <div class="text-right shrink-0 ml-2">
+                                    <span class="text-[11px] text-gray-400 block line-through">Base: Rs. ${basePrice}</span>
+                                    <span class="text-lg font-black text-orange-600">Rs. ${finalPrice}</span>
+                                </div>
+                            </div>
+                            <p class="text-gray-500 text-xs mb-4 line-clamp-2">${item.description || ''}</p>
+                        </div>
+                    </div>
+                    <div class="p-6 pt-0">
+                        ${actionHtml}
+                    </div>
+                </div>
+            `;
+            container.innerHTML += cardHtml;
+        });
+    }
 
     function addToCart(foodItemId, quantity) {
         const username = localStorage.getItem('username');

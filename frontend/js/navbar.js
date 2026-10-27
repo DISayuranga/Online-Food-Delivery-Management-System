@@ -20,7 +20,7 @@
             `;
             rightLinks = `
                 <a href="/login.html" class="text-gray-700 hover:text-orange-500 font-bold px-3 py-2 text-sm transition">Log in</a>
-                <a href="/register.html" class="bg-gray-900 text-white px-5 py-2.5 rounded-full hover:bg-orange-500 transition-colors shadow font-bold text-sm">Sign Up (Customer)</a>
+                <a href="/register.html" class="bg-gray-900 text-white px-5 py-2.5 rounded-full hover:bg-orange-500 transition-colors shadow font-bold text-sm">Sign Up</a>
             `;
         } else if (role === 'CUSTOMER') {
             // Customer Side Navigation (Exact Order Requested):
@@ -130,8 +130,21 @@
     };
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', renderNavbar);
+        document.addEventListener('DOMContentLoaded', () => {
+            renderNavbar();
+            loadChatbot();
+        });
     } else {
         renderNavbar();
+        loadChatbot();
+    }
+
+    function loadChatbot() {
+        if (!document.getElementById('cravebot-script')) {
+            const botScript = document.createElement('script');
+            botScript.id = 'cravebot-script';
+            botScript.src = '/js/chatbot.js';
+            document.body.appendChild(botScript);
+        }
     }
 })();

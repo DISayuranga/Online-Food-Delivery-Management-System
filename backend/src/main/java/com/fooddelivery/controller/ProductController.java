@@ -36,8 +36,22 @@ public class ProductController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<?> getProductsApi() {
-        return ResponseEntity.ok(foodItemRepository.findAll());
+    public ResponseEntity<?> getProductsApi(@RequestParam(required = false) String category,
+                                            @RequestParam(required = false) Long restaurantId) {
+        List<FoodItem> items = foodItemRepository.findAll();
+        if (restaurantId != null) {
+            items = items.stream()
+                    .filter(item -> item.getOwnerId() != null && item.getOwnerId().equals(restaurantId))
+                    .collect(Collectors.toList());
+        }
+        if (category != null && !category.trim().isEmpty() && !category.equalsIgnoreCase("ALL")) {
+            String catFilter = category.trim().toLowerCase();
+            items = items.stream()
+                    .filter(item -> (item.getCategory() != null && item.getCategory().toLowerCase().contains(catFilter))
+                                 || (item.getItemType() != null && item.getItemType().toLowerCase().contains(catFilter)))
+                    .collect(Collectors.toList());
+        }
+        return ResponseEntity.ok(items);
     }
 
     @GetMapping("/my")
@@ -53,6 +67,7 @@ public class ProductController {
                                         @RequestParam String description,
                                         @RequestParam double basePrice,
                                         @RequestParam String type,
+                                        @RequestParam(required = false) String category,
                                         @RequestParam(required = false) String imageUrl,
                                         @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
                                         @RequestParam(defaultValue = "true") boolean available) {
@@ -110,6 +125,11 @@ public class ProductController {
         newItem.setImageUrl(finalImageUrl);
         newItem.setAvailable(available);
         newItem.setOwner(owner);
+        if (category != null && !category.trim().isEmpty()) {
+            newItem.setCategory(category.trim());
+        } else {
+            newItem.setCategory(newItem.getItemType());
+        }
 
         foodItemRepository.save(newItem);
         return ResponseEntity.ok(Map.of("success", true));
@@ -133,6 +153,7 @@ public class ProductController {
                                          @RequestParam String name,
                                          @RequestParam String description,
                                          @RequestParam double basePrice,
+                                         @RequestParam(required = false) String category,
                                          @RequestParam(required = false) String imageUrl,
                                          @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
                                          @RequestParam(defaultValue = "true") boolean available) {
@@ -178,6 +199,9 @@ public class ProductController {
         product.setDescription(description);
         product.setBasePrice(basePrice);
         product.setAvailable(available);
+        if (category != null && !category.trim().isEmpty()) {
+            product.setCategory(category.trim());
+        }
         foodItemRepository.save(product);
 
         return ResponseEntity.ok(Map.of("success", true));
