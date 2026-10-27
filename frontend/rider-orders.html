@@ -93,6 +93,25 @@
             <p class="text-gray-400 font-medium animate-pulse">Scanning for restaurant ready orders...</p>
         </div>
     </div>
+
+    <!-- Rider Inquiries Section -->
+    <div class="mt-12 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-100">
+            <div>
+                <h3 class="text-xl font-black text-gray-900 flex items-center gap-2">
+                    <span>💬</span> Customer Delivery Inquiries
+                </h3>
+                <p class="text-xs text-gray-500 mt-1">Direct questions from customers addressed to you regarding deliveries. Reply directly here.</p>
+            </div>
+            <button onclick="loadRiderInquiries()" class="px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                <span>🔄</span> Refresh Inquiries
+            </button>
+        </div>
+
+        <div id="rider-inquiries-container" class="space-y-4">
+            <p class="text-xs text-gray-400 text-center py-4">Checking for inquiries...</p>
+        </div>
+    </div>
 </main>
 
 <!-- Vehicle Update Modal -->
@@ -216,9 +235,10 @@
                 document.getElementById('vehicle-model-color-display').innerText = `${v.vehicleModel || 'N/A'} • ${v.vehicleColor || 'N/A'}`;
                 document.getElementById('vehicle-admin-note').innerText = v.vehicleAdminNotes ? `Admin Note: ${v.vehicleAdminNotes}` : '';
 
+                const resolveImg = u => !u ? '' : (u.startsWith('/') && window.location.port !== '8080' ? 'http://localhost:8080' + u : u);
                 const photoContainer = document.getElementById('vehicle-photo-container');
                 if (v.vehicleImageUrl) {
-                    photoContainer.innerHTML = `<img src="${v.vehicleImageUrl}" alt="Vehicle" class="w-full h-full object-cover">`;
+                    photoContainer.innerHTML = `<img src="${resolveImg(v.vehicleImageUrl)}" alt="Vehicle" class="w-full h-full object-cover">`;
                 } else {
                     photoContainer.innerHTML = `<span class="text-4xl">🛵</span>`;
                 }
@@ -228,7 +248,7 @@
                 document.getElementById('input-vehicle-model').value = v.vehicleModel || '';
                 document.getElementById('input-vehicle-color').value = v.vehicleColor || '';
                 if (v.vehicleImageUrl) {
-                    document.getElementById('vehicleModalPreview').src = v.vehicleImageUrl;
+                    document.getElementById('vehicleModalPreview').src = resolveImg(v.vehicleImageUrl);
                     document.getElementById('vehicleModalPreviewContainer').classList.remove('hidden');
                     document.getElementById('vehicle-file-label').innerText = 'Change Vehicle Photo';
                 }
@@ -312,12 +332,13 @@
     }
 
     function renderOrderItemsHtml(o) {
+        const resolveImg = u => !u ? '' : (u.startsWith('/') && window.location.port !== '8080' ? 'http://localhost:8080' + u : u);
         if (o.itemsList && o.itemsList.length > 0) {
             return `
                 <div class="space-y-1.5 mt-2 max-h-36 overflow-y-auto">
                     ${o.itemsList.map(item => {
                         let imgTag = item.imageUrl 
-                            ? `<img src="${item.imageUrl}" alt="${item.name}" class="w-9 h-9 rounded-lg object-cover border border-gray-200 shrink-0 shadow-xs">`
+                            ? `<img src="${resolveImg(item.imageUrl)}" alt="${item.name}" class="w-9 h-9 rounded-lg object-cover border border-gray-200 shrink-0 shadow-xs" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60'">`
                             : `<div class="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center text-sm shrink-0">🍛</div>`;
                         return `
                             <div class="flex items-center justify-between p-1.5 bg-white rounded-xl border border-gray-100 gap-2">
@@ -368,9 +389,10 @@
                             <div class="bg-white p-6 rounded-3xl shadow-sm border border-purple-200 ring-2 ring-purple-100">
                                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-gray-100 gap-2 mb-4">
                                     <div>
-                                        <div class="flex items-center gap-3">
+                                        <div class="flex items-center gap-2 flex-wrap">
                                             <h3 class="text-xl font-black text-gray-900">Order #${o.id}</h3>
                                             <span class="px-3 py-1 text-xs font-black rounded-full bg-purple-100 text-purple-700 uppercase tracking-wider">In Transit</span>
+                                            ${o.scheduledTime && o.scheduledTime.includes('Scheduled') ? `<span class="px-2.5 py-0.5 text-[11px] font-black rounded-full bg-purple-100 text-purple-800">⏰ ${o.scheduledTime}</span>` : ''}
                                         </div>
                                         <p class="text-xs text-gray-500 mt-1">From: <strong class="text-gray-800">${o.restaurantName}</strong> ➔ To: <strong class="text-gray-800">${o.customerName}</strong></p>
                                     </div>
@@ -420,9 +442,10 @@
                             <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:border-gray-200 transition">
                                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-gray-100 gap-2 mb-4">
                                     <div>
-                                        <div class="flex items-center gap-3">
+                                        <div class="flex items-center gap-2 flex-wrap">
                                             <h3 class="text-lg font-black text-gray-900">Order #${o.id}</h3>
                                             <span class="px-3 py-1 text-xs font-bold rounded-full bg-orange-100 text-orange-700">Ready at Kitchen</span>
+                                            ${o.scheduledTime && o.scheduledTime.includes('Scheduled') ? `<span class="px-2.5 py-0.5 text-[11px] font-black rounded-full bg-purple-100 text-purple-800">⏰ ${o.scheduledTime}</span>` : ''}
                                         </div>
                                         <p class="text-xs text-gray-500 mt-1">Kitchen: <strong class="text-gray-800">${o.restaurantName}</strong> ➔ Customer: <strong class="text-gray-800">${o.customerName}</strong></p>
                                     </div>
@@ -489,8 +512,106 @@
         });
     }
 
+    function loadRiderInquiries() {
+        const container = document.getElementById('rider-inquiries-container');
+        if (!container) return;
+
+        fetch(`http://localhost:8080/api/contact/inbox?username=${encodeURIComponent(username)}`)
+            .then(res => res.json())
+            .then(data => {
+                const list = data.messages || [];
+                if (!list.length) {
+                    container.innerHTML = `
+                        <div class="py-8 text-center text-gray-400">
+                            <span class="text-3xl block mb-1">📬</span>
+                            <p class="font-bold text-gray-600 text-sm">No delivery inquiries yet</p>
+                            <p class="text-xs text-gray-400">Customer messages addressed to you will appear here.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = list.map(m => {
+                    const isReplied = m.status === 'REPLIED';
+                    return `
+                        <div class="bg-gray-50 p-5 rounded-2xl border ${isReplied ? 'border-gray-200' : 'border-purple-200 ring-2 ring-purple-100'} space-y-3">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-bold text-gray-400">#MSG-${m.id}</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${isReplied ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${m.status}</span>
+                                        <h4 class="font-black text-gray-900 text-sm">${m.subject}</h4>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">From: <strong class="text-gray-800">${m.customerName}</strong> (${m.customerEmail} ${m.customerPhone ? '| ' + m.customerPhone : ''})</p>
+                                </div>
+                                <span class="text-[11px] text-gray-400 font-medium">${m.createdAt ? new Date(m.createdAt).toLocaleString() : ''}</span>
+                            </div>
+
+                            <div class="bg-white p-3 rounded-xl border border-gray-100">
+                                <p class="text-xs text-gray-700 font-medium leading-relaxed">${m.message}</p>
+                            </div>
+
+                            ${isReplied ? `
+                                <div class="bg-green-50 p-3 rounded-xl border border-green-200 text-xs">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="font-bold text-green-800">💬 Your Reply (${m.repliedByName})</span>
+                                        <span class="text-[10px] text-gray-400">${m.repliedAt ? new Date(m.repliedAt).toLocaleString() : ''}</span>
+                                    </div>
+                                    <p class="text-gray-800 font-medium">${m.reply}</p>
+                                </div>
+                            ` : `
+                                <div class="space-y-2 pt-1">
+                                    <textarea id="reply-text-${m.id}" rows="2" placeholder="Write your reply to ${m.customerName}..." class="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-orange-500 outline-none"></textarea>
+                                    <div class="flex justify-end">
+                                        <button onclick="submitRiderReply(${m.id})" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition shadow shadow-orange-500/20">
+                                            Send Reply to Customer
+                                        </button>
+                                    </div>
+                                </div>
+                            `}
+                        </div>
+                    `;
+                }).join('');
+            })
+            .catch(err => {
+                console.error(err);
+                container.innerHTML = '<p class="text-xs text-red-500 text-center">Failed to load inquiries.</p>';
+            });
+    }
+
+    function submitRiderReply(id) {
+        const textElem = document.getElementById(`reply-text-${id}`);
+        const replyText = textElem ? textElem.value.trim() : '';
+        if (!replyText) {
+            alert('Please write a reply before submitting.');
+            return;
+        }
+
+        const params = new URLSearchParams();
+        params.append('username', username);
+        params.append('replyMessage', replyText);
+
+        fetch(`http://localhost:8080/api/contact/reply/${id}`, {
+            method: 'POST',
+            body: params
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                loadRiderInquiries();
+            } else {
+                alert(data.error || 'Failed to submit reply');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Error communicating with backend');
+        });
+    }
+
     loadOrders();
     loadVehicleDetails();
+    loadRiderInquiries();
     setInterval(loadOrders, 10000);
 </script>
 </body>
