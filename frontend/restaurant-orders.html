@@ -48,6 +48,25 @@
             <p class="text-gray-400 font-medium animate-pulse">Fetching kitchen orders...</p>
         </div>
     </div>
+
+    <!-- Customer Inquiries Section for Restaurant -->
+    <div class="mt-12 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-100">
+            <div>
+                <h3 class="text-xl font-black text-gray-900 flex items-center gap-2">
+                    <span>💬</span> Customer Inquiries & Questions
+                </h3>
+                <p class="text-xs text-gray-500 mt-1">Direct inquiries sent by customers to your restaurant via the Contact page. Reply directly here.</p>
+            </div>
+            <button onclick="loadRestaurantInquiries()" class="px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                <span>🔄</span> Refresh Inquiries
+            </button>
+        </div>
+
+        <div id="restaurant-inquiries-container" class="space-y-4">
+            <p class="text-xs text-gray-400 text-center py-4">Checking for inquiries...</p>
+        </div>
+    </div>
 </main>
 
 <footer class="bg-gray-900 py-8 text-gray-400 mt-20">
@@ -164,6 +183,7 @@
             const formattedDate = o.orderDate ? new Date(o.orderDate).toLocaleString() : 'Just now';
             const mapsUrl = getGoogleMapsUrl(o.deliveryAddress);
 
+            const resolveImg = u => !u ? '' : (u.startsWith('/') && window.location.port !== '8080' ? 'http://localhost:8080' + u : u);
             let itemsHtml = '';
             if (o.itemsList && o.itemsList.length > 0) {
                 itemsHtml = `
@@ -171,7 +191,7 @@
                         ${o.itemsList.map(item => {
                             let imgTag = '';
                             if (item.imageUrl) {
-                                imgTag = `<img src="${item.imageUrl}" alt="${item.name}" class="w-11 h-11 rounded-xl object-cover border border-gray-200 shrink-0 shadow-sm">`;
+                                imgTag = `<img src="${resolveImg(item.imageUrl)}" alt="${item.name}" class="w-11 h-11 rounded-xl object-cover border border-gray-200 shrink-0 shadow-sm" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60'">`;
                             } else {
                                 imgTag = `<div class="w-11 h-11 rounded-xl bg-orange-100 flex items-center justify-center text-xl shrink-0">🍛</div>`;
                             }
@@ -194,13 +214,19 @@
                 itemsHtml = `<p class="text-sm font-bold text-gray-900">${o.itemsSummary || 'Food items'}</p>`;
             }
 
+            const isScheduled = o.scheduledTime && o.scheduledTime.includes('Scheduled');
+            const scheduleBadge = isScheduled 
+                ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-purple-100 text-purple-700 border border-purple-200">⏰ ${o.scheduledTime}</span>`
+                : (o.scheduledTime ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-green-50 text-green-700">⚡ ${o.scheduledTime}</span>` : '');
+
             return `
                 <div class="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 hover:border-gray-200 transition">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-gray-100 gap-2 mb-4">
                         <div>
-                            <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-2 flex-wrap">
                                 <h3 class="text-xl font-black text-gray-900">Order #${o.id}</h3>
                                 ${statusBadge}
+                                ${scheduleBadge}
                             </div>
                             <span class="text-xs text-gray-400 font-medium">${formattedDate}</span>
                         </div>
@@ -261,7 +287,105 @@
         });
     }
 
+    function loadRestaurantInquiries() {
+        const container = document.getElementById('restaurant-inquiries-container');
+        if (!container) return;
+
+        fetch(`http://localhost:8080/api/contact/inbox?username=${encodeURIComponent(username)}`)
+            .then(res => res.json())
+            .then(data => {
+                const list = data.messages || [];
+                if (!list.length) {
+                    container.innerHTML = `
+                        <div class="py-8 text-center text-gray-400">
+                            <span class="text-3xl block mb-1">📬</span>
+                            <p class="font-bold text-gray-600 text-sm">No customer inquiries yet</p>
+                            <p class="text-xs text-gray-400">Inquiries sent by customers to your restaurant will appear here.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = list.map(m => {
+                    const isReplied = m.status === 'REPLIED';
+                    return `
+                        <div class="bg-gray-50 p-5 rounded-2xl border ${isReplied ? 'border-gray-200' : 'border-orange-200 ring-2 ring-orange-100'} space-y-3">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-bold text-gray-400">#MSG-${m.id}</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${isReplied ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${m.status}</span>
+                                        <h4 class="font-black text-gray-900 text-sm">${m.subject}</h4>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">From: <strong class="text-gray-800">${m.customerName}</strong> (${m.customerEmail} ${m.customerPhone ? '| ' + m.customerPhone : ''})</p>
+                                </div>
+                                <span class="text-[11px] text-gray-400 font-medium">${m.createdAt ? new Date(m.createdAt).toLocaleString() : ''}</span>
+                            </div>
+
+                            <div class="bg-white p-3 rounded-xl border border-gray-100">
+                                <p class="text-xs text-gray-700 font-medium leading-relaxed">${m.message}</p>
+                            </div>
+
+                            ${isReplied ? `
+                                <div class="bg-green-50 p-3 rounded-xl border border-green-200 text-xs">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="font-bold text-green-800">💬 Your Reply (${m.repliedByName})</span>
+                                        <span class="text-[10px] text-gray-400">${m.repliedAt ? new Date(m.repliedAt).toLocaleString() : ''}</span>
+                                    </div>
+                                    <p class="text-gray-800 font-medium">${m.reply}</p>
+                                </div>
+                            ` : `
+                                <div class="space-y-2 pt-1">
+                                    <textarea id="reply-text-${m.id}" rows="2" placeholder="Write your reply to ${m.customerName}..." class="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-orange-500 outline-none"></textarea>
+                                    <div class="flex justify-end">
+                                        <button onclick="submitRestaurantReply(${m.id})" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition shadow shadow-orange-500/20">
+                                            Send Reply to Customer
+                                        </button>
+                                    </div>
+                                </div>
+                            `}
+                        </div>
+                    `;
+                }).join('');
+            })
+            .catch(err => {
+                console.error(err);
+                container.innerHTML = '<p class="text-xs text-red-500 text-center">Failed to load inquiries.</p>';
+            });
+    }
+
+    function submitRestaurantReply(id) {
+        const textElem = document.getElementById(`reply-text-${id}`);
+        const replyText = textElem ? textElem.value.trim() : '';
+        if (!replyText) {
+            alert('Please write a reply before submitting.');
+            return;
+        }
+
+        const params = new URLSearchParams();
+        params.append('username', username);
+        params.append('replyMessage', replyText);
+
+        fetch(`http://localhost:8080/api/contact/reply/${id}`, {
+            method: 'POST',
+            body: params
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                loadRestaurantInquiries();
+            } else {
+                alert(data.error || 'Failed to submit reply');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Error communicating with backend');
+        });
+    }
+
     loadOrders();
+    loadRestaurantInquiries();
     // Auto-refresh every 15 seconds for kitchen display
     setInterval(loadOrders, 15000);
 </script>

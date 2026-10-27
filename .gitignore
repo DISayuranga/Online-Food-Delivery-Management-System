@@ -1,6 +1,17 @@
 # Compiled class file
 *.class
 
+# Maven build directory
+target/
+backend/target/
+
+# IDE and Editor files
+.idea/
+.vscode/
+
+# Node dependencies
+node_modules/
+
 # Log file
 *.log
 

@@ -61,6 +61,10 @@
         <button onclick="switchTab('orders')" id="tab-btn-orders" class="tab-btn flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm transition whitespace-nowrap bg-white text-gray-600 hover:bg-gray-100 border border-gray-200">
             <span>📦</span> Manage Orders & Deliveries
         </button>
+        <button onclick="switchTab('inquiries')" id="tab-btn-inquiries" class="tab-btn flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm transition whitespace-nowrap bg-white text-gray-600 hover:bg-gray-100 border border-gray-200">
+            <span>💬</span> Customer Inquiries
+            <span id="inquiries-pending-badge" class="hidden px-2 py-0.5 rounded-full text-[10px] font-black bg-red-500 text-white">0</span>
+        </button>
     </div>
 
     <!-- ==================== TAB 1: DASHBOARD & ANALYTICS ==================== -->
@@ -118,7 +122,7 @@
                 <div>
                     <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">System Administrators</span>
                     <div class="text-3xl font-black text-gray-900 mt-1" id="stat-admins">0</div>
-                    <p class="text-xs text-gray-500 mt-1">Superusers with full CRUD authority</p>
+                    <p class="text-xs text-gray-500 mt-1">Superusers with full management authority</p>
                 </div>
                 <div class="text-4xl bg-gray-100 p-4 rounded-2xl">🛡️</div>
             </div>
@@ -309,6 +313,25 @@
         </div>
     </div>
 
+    <!-- ==================== TAB 6: CUSTOMER INQUIRIES & MESSAGES ==================== -->
+    <div id="tab-content-inquiries" class="tab-content hidden space-y-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+                <h2 class="text-2xl font-black text-gray-900">Customer Inquiries & Messages</h2>
+                <p class="text-gray-500 text-sm mt-0.5">Admin can view messages addressed to Admin, Restaurants, and Riders, and post direct replies.</p>
+            </div>
+            <button onclick="loadAdminInquiries()" class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-5 py-2.5 rounded-2xl font-bold transition flex items-center gap-2 text-sm">
+                <span>🔄</span> Refresh Inquiries
+            </button>
+        </div>
+
+        <div id="admin-inquiries-container" class="space-y-4">
+            <div class="p-8 text-center text-gray-400 bg-white rounded-3xl border border-gray-100">
+                Loading inquiries...
+            </div>
+        </div>
+    </div>
+
 </main>
 
 <!-- ==================== ADD ANY USER MODAL ==================== -->
@@ -439,7 +462,7 @@
     }
 
     function switchTab(tabName) {
-        const tabs = ['analytics', 'customers', 'restaurants', 'riders', 'orders'];
+        const tabs = ['analytics', 'customers', 'restaurants', 'riders', 'orders', 'inquiries'];
         tabs.forEach(t => {
             const btn = document.getElementById(`tab-btn-${t}`);
             const content = document.getElementById(`tab-content-${t}`);
@@ -456,6 +479,125 @@
         if (tabName === 'customers' || tabName === 'restaurants' || tabName === 'riders') renderUserTables();
         if (tabName === 'riders') loadVehicleApprovals();
         if (tabName === 'orders') loadAdminOrders();
+        if (tabName === 'inquiries') loadAdminInquiries();
+    }
+
+    function loadAdminInquiries() {
+        const container = document.getElementById('admin-inquiries-container');
+        if (!container) return;
+
+        fetch(`http://localhost:8080/api/contact/inbox?username=${encodeURIComponent(adminUsername)}`)
+            .then(res => res.json())
+            .then(data => {
+                const list = data.messages || [];
+                const pendingCount = list.filter(m => m.status === 'PENDING').length;
+                const badge = document.getElementById('inquiries-pending-badge');
+                if (badge) {
+                    if (pendingCount > 0) {
+                        badge.innerText = pendingCount;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+
+                if (!list.length) {
+                    container.innerHTML = `
+                        <div class="p-12 text-center text-gray-400 bg-white rounded-3xl border border-gray-100">
+                            <span class="text-4xl block mb-2">📬</span>
+                            <h4 class="font-bold text-gray-700">No Customer Inquiries Yet</h4>
+                            <p class="text-xs text-gray-400 mt-1">Customer messages from the Contact Us page will show up here.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = list.map(m => {
+                    const isReplied = m.status === 'REPLIED';
+                    const targetBadge = m.targetType === 'ADMIN' 
+                        ? '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-blue-100 text-blue-800">🛡️ Platform Admin</span>'
+                        : (m.targetType === 'RESTAURANT' ? '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-orange-100 text-orange-800">🏪 Restaurant</span>' : '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-green-100 text-green-800">🛵 Rider</span>');
+
+                    return `
+                        <div class="bg-white p-6 rounded-3xl border ${isReplied ? 'border-gray-100' : 'border-orange-200 ring-2 ring-orange-100'} shadow-sm space-y-4">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-gray-100">
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-xs font-bold text-gray-400">#MSG-${m.id}</span>
+                                        ${targetBadge}
+                                        <span class="text-xs font-bold text-gray-700">To: ${m.targetName}</span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black ${isReplied ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${m.status}</span>
+                                    </div>
+                                    <h3 class="text-base font-extrabold text-gray-900 mt-1">${m.subject}</h3>
+                                    <p class="text-xs text-gray-500">From: <strong class="text-gray-800">${m.customerName}</strong> (${m.customerEmail} ${m.customerPhone ? '| ' + m.customerPhone : ''}) | Customer: <strong>@${m.customerUsername}</strong></p>
+                                </div>
+                                <span class="text-xs text-gray-400 font-medium">${m.createdAt ? new Date(m.createdAt).toLocaleString() : ''}</span>
+                            </div>
+
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                <p class="text-xs text-gray-700 font-medium leading-relaxed">${m.message}</p>
+                            </div>
+
+                            ${isReplied ? `
+                                <div class="bg-green-50/70 p-4 rounded-2xl border border-green-200 space-y-2">
+                                    <div class="flex items-center justify-between text-xs font-bold">
+                                        <span class="text-green-800 flex items-center gap-1.5">
+                                            <span>💬</span> Replied by: ${m.repliedByName}
+                                        </span>
+                                        <span class="text-[10px] text-gray-400">${m.repliedAt ? new Date(m.repliedAt).toLocaleString() : ''}</span>
+                                    </div>
+                                    <p class="text-xs text-gray-800 font-semibold bg-white p-3 rounded-xl border border-green-100">${m.reply}</p>
+                                </div>
+                            ` : `
+                                <div class="bg-orange-50/50 p-4 rounded-2xl border border-orange-100 space-y-3">
+                                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Post Official Reply to Customer</label>
+                                    <textarea id="reply-text-${m.id}" rows="2" placeholder="Write your response to this customer..." class="w-full p-3 bg-white border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-orange-500 outline-none"></textarea>
+                                    <div class="flex justify-end">
+                                        <button onclick="submitInquiryReply(${m.id})" class="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition shadow shadow-orange-500/20 flex items-center gap-1.5">
+                                            <span>📨</span> Send Reply
+                                        </button>
+                                    </div>
+                                </div>
+                            `}
+                        </div>
+                    `;
+                }).join('');
+            })
+            .catch(err => {
+                console.error(err);
+                container.innerHTML = '<p class="text-red-500 text-center py-6">Failed to load inquiries.</p>';
+            });
+    }
+
+    function submitInquiryReply(id) {
+        const textElem = document.getElementById(`reply-text-${id}`);
+        const replyText = textElem ? textElem.value.trim() : '';
+        if (!replyText) {
+            alert('Please write a reply message before sending.');
+            return;
+        }
+
+        const params = new URLSearchParams();
+        params.append('username', adminUsername);
+        params.append('replyMessage', replyText);
+
+        fetch(`http://localhost:8080/api/contact/reply/${id}`, {
+            method: 'POST',
+            body: params
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Reply sent successfully to customer!');
+                loadAdminInquiries();
+            } else {
+                alert(data.error || 'Failed to post reply');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Error communicating with backend');
+        });
     }
 
     function loadVehicleApprovals() {
@@ -483,9 +625,11 @@
                         statusBadge = '<span class="px-3 py-1 bg-amber-100 text-amber-700 font-extrabold text-xs rounded-full uppercase tracking-wider animate-pulse">⏳ Pending Approval</span>';
                     }
 
+                    const resolveImg = u => !u ? '' : (u.startsWith('/') && window.location.port !== '8080' ? 'http://localhost:8080' + u : u);
                     let imgHtml = '';
                     if (v.vehicleImageUrl) {
-                        imgHtml = `<img src="${v.vehicleImageUrl}" alt="Vehicle" class="w-24 h-24 rounded-2xl object-cover border border-gray-200 shrink-0 shadow-sm cursor-pointer hover:scale-105 transition" onclick="window.open('${v.vehicleImageUrl}')">`;
+                        const vImg = resolveImg(v.vehicleImageUrl);
+                        imgHtml = `<img src="${vImg}" alt="Vehicle" class="w-24 h-24 rounded-2xl object-cover border border-gray-200 shrink-0 shadow-sm cursor-pointer hover:scale-105 transition" onclick="window.open('${vImg}')" onerror="this.src='https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=500&q=80'">`;
                     } else {
                         imgHtml = `<div class="w-24 h-24 rounded-2xl bg-gray-100 border border-gray-200 flex flex-col items-center justify-center text-3xl shrink-0">🛵<span class="text-[9px] text-gray-400 font-bold mt-1">No Photo</span></div>`;
                     }
@@ -913,7 +1057,7 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const requestedTab = urlParams.get('tab');
-        if (requestedTab && ['analytics', 'customers', 'restaurants', 'riders', 'orders'].includes(requestedTab)) {
+        if (requestedTab && ['analytics', 'customers', 'restaurants', 'riders', 'orders', 'inquiries'].includes(requestedTab)) {
             switchTab(requestedTab);
         }
     });

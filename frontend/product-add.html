@@ -48,14 +48,30 @@
         </div>
 
         <form id="add-dish-form" onsubmit="handleAddDish(event)" enctype="multipart/form-data" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Item Name</label>
                     <input type="text" name="name" required placeholder="e.g. Signature Double Wagyu Burger" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Food Category</label>
-                    <select name="type" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Category (Store & Filter)</label>
+                    <select name="category" id="categorySelect" onchange="syncPricingType(this.value)" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
+                        <option value="Burgers">🍔 Burgers</option>
+                        <option value="Pizza">🍕 Pizza</option>
+                        <option value="Lunch">🍱 Lunch</option>
+                        <option value="Dinner">🍽️ Dinner</option>
+                        <option value="Juice">🧃 Juice</option>
+                        <option value="Sushi">🍣 Sushi</option>
+                        <option value="Healthy">🥗 Healthy</option>
+                        <option value="Desserts">🍰 Desserts</option>
+                        <option value="Breakfast">🍳 Breakfast</option>
+                        <option value="Beverages">🥤 Beverages</option>
+                        <option value="Main Course">🍛 Main Course</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Pricing Class (OOP Fee)</label>
+                    <select name="type" id="pricingTypeSelect" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
                         <option value="MAIN_COURSE">Main Course (+10% Service Fee)</option>
                         <option value="DESSERT">Dessert (+8% Sweet Prep Fee)</option>
                         <option value="BEVERAGE">Beverage (+5% Bottle/Recycle Fee)</option>
@@ -170,7 +186,7 @@
                 }
 
                 container.innerHTML = dishes.map(d => {
-                    const img = d.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60';
+                    const img = resolveImageUrl(d.imageUrl) || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60';
                     const availBadge = d.available 
                         ? '<span class="px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">● Available</span>'
                         : '<span class="px-2.5 py-1 bg-red-100 text-red-600 rounded-full text-xs font-bold">Out of stock</span>';
@@ -184,8 +200,9 @@
                             <div>
                                 <div class="h-48 w-full bg-gray-100 overflow-hidden relative">
                                     <img src="${img}" alt="${d.name}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60'">
-                                    <div class="absolute top-3 left-3">
-                                        <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${typeBadge}">${d.itemType || 'Main Course'}</span>
+                                    <div class="absolute top-3 left-3 flex items-center gap-1.5">
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-black shadow-sm bg-white/95 text-gray-900 border border-gray-100">${d.category || 'Main Course'}</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${typeBadge}">${d.itemType || 'Main Course'}</span>
                                     </div>
                                     <div class="absolute top-3 right-3">
                                         ${availBadge}
@@ -216,6 +233,28 @@
                 console.error(err);
                 showAlert('Failed to load menu dishes', true);
             });
+    }
+
+    function resolveImageUrl(url) {
+        if (!url) return '';
+        if (url.startsWith('http://') || url.startsWith('https://')) return url;
+        if (url.startsWith('/')) {
+            if (window.location.port === '3000' || (window.location.port !== '8080' && window.location.port !== '')) {
+                return 'http://localhost:8080' + url;
+            }
+        }
+        return url;
+    }
+
+    function syncPricingType(cat) {
+        const pricingSelect = document.getElementById('pricingTypeSelect');
+        if (cat === 'Desserts') {
+            pricingSelect.value = 'DESSERT';
+        } else if (cat === 'Beverages' || cat === 'Juice') {
+            pricingSelect.value = 'BEVERAGE';
+        } else {
+            pricingSelect.value = 'MAIN_COURSE';
+        }
     }
 
     function handleImagePreview(input) {

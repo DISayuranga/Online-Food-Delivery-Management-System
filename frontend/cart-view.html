@@ -98,10 +98,12 @@
         document.getElementById('summary-total').innerText = `Rs. ${totalValue}`;
         document.getElementById('checkout-btn').classList.remove('opacity-50', 'cursor-not-allowed');
 
+        const resolveImg = u => !u ? '' : (u.startsWith('/') && window.location.port !== '8080' ? 'http://localhost:8080' + u : u);
+
         items.forEach(item => {
             let imgHtml = '';
             if (item.foodItem && item.foodItem.imageUrl) {
-                imgHtml = `<img src="${item.foodItem.imageUrl}" alt="${item.foodItem.name}" class="w-16 h-16 rounded-2xl object-cover border border-gray-100 shadow-sm shrink-0">`;
+                imgHtml = `<img src="${resolveImg(item.foodItem.imageUrl)}" alt="${item.foodItem.name}" class="w-16 h-16 rounded-2xl object-cover border border-gray-100 shadow-sm shrink-0" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60'">`;
             } else {
                 let emoji = '🍛';
                 const type = (item.foodItem && item.foodItem.itemType ? item.foodItem.itemType : '').toUpperCase();

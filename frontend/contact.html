@@ -70,21 +70,30 @@
             <!-- Inquiry Form -->
             <div class="bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-gray-100 lg:col-span-2">
                 <h2 class="text-2xl font-black text-gray-900 mb-2">Send us a Message</h2>
-                <p class="text-gray-500 text-sm mb-8">Fill in your inquiry below and our customer success representatives will get back to you within 24 hours.</p>
+                <p class="text-gray-500 text-sm mb-6">Select who you want to reach out to (Restaurant, Rider, or Admin Support) and receive a direct reply.</p>
 
                 <div id="form-alert" class="hidden mb-6 p-4 rounded-2xl bg-green-50 border border-green-200 text-green-800 text-sm font-medium flex items-center gap-3">
                     <svg class="w-5 h-5 text-green-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                    <span>Thank you! Your message has been sent successfully. We will contact you shortly.</span>
+                    <span id="alert-text">Thank you! Your message has been sent successfully.</span>
                 </div>
 
                 <form id="contact-form" onsubmit="handleContactSubmit(event)" class="space-y-6">
+                    <!-- Target Recipient Dropdown -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Contact Person / Department <span class="text-red-500">*</span></label>
+                        <select id="contact-target" required class="w-full px-4 py-3 bg-orange-50/40 border-2 border-orange-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm font-semibold text-gray-900">
+                            <option value="">Loading available contacts...</option>
+                        </select>
+                        <p class="text-[11px] text-gray-400 mt-1">Select Admin Support, your favorite restaurant, or a delivery rider.</p>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">Your Name</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">Your Name <span class="text-red-500">*</span></label>
                             <input type="text" id="contact-name" required placeholder="John Doe" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">Email Address</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">Email Address <span class="text-red-500">*</span></label>
                             <input type="email" id="contact-email" required placeholder="john@example.com" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
                         </div>
                     </div>
@@ -95,26 +104,39 @@
                             <input type="text" id="contact-phone" placeholder="077 123 4567" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">Inquiry Type</label>
-                            <select id="contact-subject" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
-                                <option value="Order Support">Order Inquiry / Delivery Issue</option>
-                                <option value="Restaurant Partner">Restaurant Partnership</option>
-                                <option value="Rider Opportunities">Rider Opportunities</option>
-                                <option value="Feedback & Suggestions">Feedback & Suggestions</option>
-                                <option value="Other">Other</option>
-                            </select>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">Inquiry Subject <span class="text-red-500">*</span></label>
+                            <input type="text" id="contact-subject" required placeholder="e.g. Question about order, Food feedback..." class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">Your Message</label>
-                        <textarea id="contact-message" rows="5" required placeholder="Tell us what you need help with..." class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"></textarea>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">Your Message <span class="text-red-500">*</span></label>
+                        <textarea id="contact-message" rows="4" required placeholder="Tell us what you need help with in detail..." class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"></textarea>
                     </div>
 
-                    <button type="submit" class="w-full bg-orange-500 text-white font-bold py-4 rounded-xl hover:bg-orange-600 transition shadow-lg shadow-orange-500/20 text-sm uppercase tracking-wider">
-                        Send Message
+                    <button type="submit" id="submit-btn" class="w-full bg-orange-500 text-white font-bold py-4 rounded-xl hover:bg-orange-600 transition shadow-lg shadow-orange-500/20 text-sm uppercase tracking-wider flex items-center justify-center gap-2">
+                        <span>✉️</span> Send Message
                     </button>
                 </form>
+
+                <!-- My Messages & Replies Section -->
+                <div class="mt-12 pt-8 border-t border-gray-100">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-xl font-black text-gray-900">My Inquiries & Replies</h3>
+                            <p class="text-xs text-gray-500 mt-0.5">Track your questions and view replies from Restaurant Owners, Riders, or Admin.</p>
+                        </div>
+                        <button onclick="loadMyMessages()" class="text-xs font-bold text-orange-500 hover:text-orange-600 flex items-center gap-1">
+                            <span>🔄</span> Refresh
+                        </button>
+                    </div>
+
+                    <div id="my-messages-container" class="space-y-4">
+                        <div class="p-6 text-center text-gray-400 text-sm bg-gray-50 rounded-2xl">
+                            Loading your messages...
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -151,12 +173,166 @@
 
 <script src="/js/navbar.js"></script>
 <script>
+    let availableTargets = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadContactTargets();
+        prefillUserData();
+        loadMyMessages();
+    });
+
+    function prefillUserData() {
+        const username = localStorage.getItem('username');
+        const fullName = localStorage.getItem('fullName');
+        const email = localStorage.getItem('email');
+        if (fullName) document.getElementById('contact-name').value = fullName;
+        if (email) document.getElementById('contact-email').value = email;
+    }
+
+    function loadContactTargets() {
+        const select = document.getElementById('contact-target');
+        fetch('http://localhost:8080/api/contact/targets')
+            .then(res => res.json())
+            .then(targets => {
+                availableTargets = targets;
+                if (!targets || !targets.length) {
+                    select.innerHTML = '<option value="0">🛡️ Platform Support & Admin Team</option>';
+                    return;
+                }
+                select.innerHTML = targets.map((t, idx) => `
+                    <option value="${idx}">${t.displayName}</option>
+                `).join('');
+            })
+            .catch(err => {
+                console.error('Failed to load targets', err);
+                select.innerHTML = '<option value="0">🛡️ Platform Support & Admin Team</option>';
+            });
+    }
+
     function handleContactSubmit(event) {
         event.preventDefault();
-        const alertBox = document.getElementById('form-alert');
-        alertBox.classList.remove('hidden');
-        document.getElementById('contact-form').reset();
-        window.scrollTo({ top: alertBox.offsetTop - 100, behavior: 'smooth' });
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>⏳</span> Sending...';
+
+        const username = localStorage.getItem('username') || 'Guest';
+        const targetIdx = document.getElementById('contact-target').value;
+        const target = availableTargets[targetIdx] || { targetType: 'ADMIN', targetId: null, displayName: 'Platform Support' };
+
+        const params = new URLSearchParams();
+        params.append('customerUsername', username);
+        params.append('name', document.getElementById('contact-name').value);
+        params.append('email', document.getElementById('contact-email').value);
+        params.append('phone', document.getElementById('contact-phone').value || '');
+        params.append('targetType', target.targetType || 'ADMIN');
+        if (target.targetId) params.append('targetId', target.targetId);
+        params.append('targetName', target.displayName || 'Platform Support');
+        params.append('subject', document.getElementById('contact-subject').value);
+        params.append('message', document.getElementById('contact-message').value);
+
+        fetch('http://localhost:8080/api/contact/send', {
+            method: 'POST',
+            body: params
+        })
+        .then(res => res.json())
+        .then(data => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>✉️</span> Send Message';
+
+            if (data.success) {
+                const alertBox = document.getElementById('form-alert');
+                document.getElementById('alert-text').innerText = data.message || "Thank you! Your message has been sent successfully.";
+                alertBox.classList.remove('hidden');
+                document.getElementById('contact-subject').value = '';
+                document.getElementById('contact-message').value = '';
+                window.scrollTo({ top: alertBox.offsetTop - 100, behavior: 'smooth' });
+                loadMyMessages();
+            } else {
+                alert(data.error || 'Failed to send message');
+            }
+        })
+        .catch(err => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>✉️</span> Send Message';
+            console.error(err);
+            alert('Error connecting to backend server');
+        });
+    }
+
+    function loadMyMessages() {
+        const container = document.getElementById('my-messages-container');
+        const username = localStorage.getItem('username');
+        if (!username) {
+            container.innerHTML = `
+                <div class="p-6 text-center text-gray-500 bg-gray-50 rounded-2xl text-xs">
+                    <p class="font-bold text-gray-700">Please <a href="/login.html" class="text-orange-500 underline">Log in</a> to track your message history and view replies.</p>
+                </div>
+            `;
+            return;
+        }
+
+        fetch(`http://localhost:8080/api/contact/my-messages?username=${encodeURIComponent(username)}`)
+            .then(res => res.json())
+            .then(messages => {
+                if (!messages || !messages.length) {
+                    container.innerHTML = `
+                        <div class="p-8 text-center text-gray-400 bg-gray-50 rounded-2xl text-xs">
+                            <span class="text-3xl block mb-2">📬</span>
+                            <p class="font-bold text-gray-700">No inquiries sent yet</p>
+                            <p class="text-gray-400 mt-1">Send a message using the form above to reach restaurants, riders, or platform admin.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = messages.map(m => {
+                    const formattedDate = m.createdAt ? new Date(m.createdAt).toLocaleString() : 'Recent';
+                    const hasReply = m.status === 'REPLIED' && m.reply;
+
+                    let replyBadge = '';
+                    if (m.repliedByRole === 'ADMIN') {
+                        replyBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-blue-100 text-blue-800">🛡️ Platform Admin Reply</span>';
+                    } else if (m.repliedByRole === 'RESTAURANT') {
+                        replyBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-orange-100 text-orange-800">🏪 Restaurant Partner Reply</span>';
+                    } else if (m.repliedByRole === 'RIDER') {
+                        replyBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-green-100 text-green-800">🛵 Delivery Rider Reply</span>';
+                    }
+
+                    return `
+                        <div class="bg-gray-50 p-5 rounded-2xl border border-gray-100 space-y-3">
+                            <div class="flex justify-between items-start flex-wrap gap-2">
+                                <div>
+                                    <span class="text-[11px] font-bold text-orange-600 bg-orange-100/60 px-2 py-0.5 rounded-md">To: ${m.targetName}</span>
+                                    <h4 class="font-extrabold text-gray-900 text-sm mt-1">${m.subject}</h4>
+                                </div>
+                                <span class="text-[11px] text-gray-400 font-medium">${formattedDate}</span>
+                            </div>
+                            <p class="text-xs text-gray-700 bg-white p-3 rounded-xl border border-gray-100 font-medium leading-relaxed">${m.message}</p>
+                            
+                            ${hasReply ? `
+                                <div class="bg-green-50 border-2 border-green-200 p-4 rounded-xl space-y-2">
+                                    <div class="flex items-center justify-between flex-wrap gap-2">
+                                        <div class="flex items-center gap-2">
+                                            ${replyBadge}
+                                            <span class="text-xs font-black text-gray-900">${m.repliedByName || 'Support Staff'}</span>
+                                        </div>
+                                        <span class="text-[10px] text-gray-500 font-medium">${m.repliedAt ? new Date(m.repliedAt).toLocaleString() : ''}</span>
+                                    </div>
+                                    <p class="text-xs text-gray-900 font-bold leading-relaxed bg-white/70 p-3 rounded-lg border border-green-100">${m.reply}</p>
+                                </div>
+                            ` : `
+                                <div class="flex items-center gap-2 text-xs text-amber-700 font-bold bg-amber-50 px-3 py-2 rounded-xl border border-amber-200">
+                                    <span>⏳</span> Awaiting reply from ${m.targetName}...
+                                </div>
+                            `}
+                        </div>
+                    `;
+                }).join('');
+            })
+            .catch(err => {
+                console.error(err);
+                container.innerHTML = '<p class="text-xs text-red-500 text-center">Failed to load message history.</p>';
+            });
     }
 </script>
 </body>
