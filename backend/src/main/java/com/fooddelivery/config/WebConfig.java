@@ -34,12 +34,11 @@ public class WebConfig implements WebMvcConfigurer {
 
         File uploadsDir = new File("uploads");
         if (!uploadsDir.exists()) uploadsDir.mkdirs();
-        File frontendUploads = new File("../frontend/uploads");
-        if (!frontendUploads.exists()) frontendUploads = new File("frontend/uploads");
+        File frontendUploads = new File("frontend/uploads").exists() ? new File("frontend/uploads") : new File("../frontend/uploads");
         if (!frontendUploads.exists()) frontendUploads.mkdirs();
 
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations(uploadsDir.toURI().toString(), frontendUploads.toURI().toString(), "file:uploads/", "file:../frontend/uploads/", "file:frontend/uploads/");
+                .addResourceLocations(uploadsDir.toURI().toString(), frontendUploads.toURI().toString(), "file:uploads/", "file:frontend/uploads/", "file:../frontend/uploads/");
     }
 
     @Override
