@@ -3,78 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Food Delivery System</title>
+    <title>Login - CraveBite</title>
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Outfit', sans-serif; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col relative selection:bg-orange-500 selection:text-white" style="background-image: linear-gradient(135deg, rgba(17, 24, 39, 0.85) 0%, rgba(30, 18, 10, 0.80) 50%, rgba(17, 24, 39, 0.90) 100%), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1920&q=80'); background-size: cover; background-position: center; background-attachment: fixed;">
 
-<!-- Navbar -->
-<nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-20 items-center">
-            <div class="flex items-center gap-8">
-                <a href="/index.html" class="flex items-center gap-2">
-                    <div class="bg-orange-500 p-2 rounded-xl">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    </div>
-                    <span class="text-2xl font-black text-gray-900 tracking-tight">CraveBite<span class="text-orange-500">.</span></span>
-                </a>
-                <div class="hidden md:flex items-center space-x-6 text-sm font-bold text-gray-600">
-                    <a href="/index.html" class="hover:text-orange-500 transition">Home</a>
-                    <a href="/products-list.html" class="hover:text-orange-500 transition">Menu</a>
-                    <a href="/about.html" class="hover:text-orange-500 transition">Our Story</a>
-                </div>
-            </div>
-            <div class="flex items-center space-x-4">
-                <a href="/register.html" class="bg-gray-900 text-white px-5 py-2 rounded-full hover:bg-orange-500 transition-colors shadow text-sm font-bold">Sign up</a>
-            </div>
-        </div>
-    </div>
-</nav>
+<!-- Dynamic Navbar -->
+<nav id="cravebite-nav"></nav>
 
 <div class="flex-grow flex items-center justify-center p-4 py-12">
-<div class="bg-white p-10 rounded-2xl shadow-xl w-full max-w-md">
-    <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800">Welcome Back</h1>
-        <p class="text-gray-500 mt-2">Login to your account</p>
-    </div>
-
-    <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm" role="alert">
-        <span id="error-text" class="block sm:inline"></span>
-    </div>
-
-    <form id="loginForm" class="space-y-6">
-        <div>
-            <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
-            <input type="text" id="username" name="username" required
-                   class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+    <div class="bg-white/95 backdrop-blur-xl p-8 sm:p-10 rounded-3xl shadow-2xl border border-white/40 w-full max-w-md">
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-14 h-14 bg-orange-500 rounded-2xl text-white text-2xl shadow-lg shadow-orange-500/30 mb-4">
+                🍔
+            </div>
+            <h1 class="text-3xl font-black text-gray-900 tracking-tight">Welcome Back</h1>
+            <p class="text-gray-500 mt-1 text-sm font-medium">Log in to manage orders, dishes or deliveries</p>
         </div>
 
-        <div>
-            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-            <input type="password" id="password" name="password" required
-                   class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <div id="error-message" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl relative mb-6 text-sm font-medium" role="alert">
+            <span id="error-text"></span>
         </div>
 
-        <div>
-            <button type="submit"
-                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
-                Sign In
-            </button>
-        </div>
-    </form>
+        <form id="loginForm" class="space-y-5">
+            <div>
+                <label for="username" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Username</label>
+                <input type="text" id="username" name="username" required placeholder="Enter your username"
+                       class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 outline-none focus:border-orange-500 focus:bg-white transition">
+            </div>
 
-    <div class="mt-6 text-center">
-        <p class="text-sm text-gray-600">Don't have an account? 
-            <a href="/register.html" class="font-medium text-blue-600 hover:text-blue-500">Register here</a>
-        </p>
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <label for="password" class="block text-xs font-bold uppercase tracking-wider text-gray-700">Password</label>
+                </div>
+                <input type="password" id="password" name="password" required placeholder="••••••••"
+                       class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 outline-none focus:border-orange-500 focus:bg-white transition">
+            </div>
+
+            <div class="pt-2">
+                <button type="submit"
+                        class="w-full py-3.5 px-4 rounded-xl text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-500/25 transition duration-150 flex items-center justify-center gap-2">
+                    <span>Sign In</span>
+                    <span>➔</span>
+                </button>
+            </div>
+        </form>
+
+        <div class="mt-8 pt-6 border-t border-gray-100 text-center">
+            <p class="text-xs font-medium text-gray-600">Don't have an account? 
+                <a href="/register.html" class="font-bold text-orange-500 hover:text-orange-600 underline ml-1">Sign up here</a>
+            </p>
+        </div>
     </div>
 </div>
+
+<footer class="py-6 text-center text-xs text-white/70">
+    <p>&copy; 2026 CraveBite Inc. All rights reserved.</p>
+</footer>
 
 <script>
 document.getElementById('loginForm').addEventListener('submit', function(e) {
@@ -117,7 +107,6 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
 });
 </script>
 
-</div>
 <script src="/js/navbar.js"></script>
 </body>
 </html>
