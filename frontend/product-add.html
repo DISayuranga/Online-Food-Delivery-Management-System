@@ -37,7 +37,7 @@
         <button onclick="document.getElementById('alert-box').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">&times;</button>
     </div>
 
-    <!-- Add Item Form (Collapsible) -->
+    <!-- Add Item Form -->
     <div id="add-form-container" class="hidden mb-12 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
         <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
             <div>
@@ -54,7 +54,7 @@
                     <input type="text" name="name" required placeholder="e.g. Signature Double Wagyu Burger" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Category (Store & Filter)</label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Category</label>
                     <select name="category" id="categorySelect" onchange="syncPricingType(this.value)" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
                         <option value="Burgers">🍔 Burgers</option>
                         <option value="Pizza">🍕 Pizza</option>
@@ -70,18 +70,18 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Pricing Class (OOP Fee)</label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Pricing Class</label>
                     <select name="type" id="pricingTypeSelect" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
-                        <option value="MAIN_COURSE">Main Course (+10% Service Fee)</option>
-                        <option value="DESSERT">Dessert (+8% Sweet Prep Fee)</option>
-                        <option value="BEVERAGE">Beverage (+5% Bottle/Recycle Fee)</option>
+                        <option value="MAIN_COURSE">Main Course - 10% Service Fee</option>
+                        <option value="DESSERT">Dessert - 8% Sweet Prep Fee</option>
+                        <option value="BEVERAGE">Beverage - 5% Bottle Fee</option>
                     </select>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Base Price (Rs.)</label>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Base Price - Rs.</label>
                     <input type="number" step="0.01" name="basePrice" required min="1" placeholder="1250.00" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
                 </div>
                 <div>
@@ -118,9 +118,39 @@
 
     <!-- Dishes Grid List -->
     <div>
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-black text-gray-900">Your Menu Dishes</h2>
-            <span id="dish-count-badge" class="bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1 rounded-full">0 Dishes</span>
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+            <div class="flex items-center gap-3">
+                <h2 class="text-2xl font-black text-gray-900">Your Menu Dishes</h2>
+                <span id="dish-count-badge" class="bg-gray-100 text-gray-700 text-xs font-bold px-3 py-1 rounded-full">0 Dishes</span>
+            </div>
+            <!-- Search My Dishes (Compact Right-Aligned) -->
+            <div class="w-full sm:w-64 md:w-72 relative sm:ml-auto">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <input type="text" id="owner-search-input" oninput="handleOwnerSearch(event)" placeholder="Search your dishes..." class="w-full pl-9 pr-8 py-2 bg-white border border-gray-200 hover:border-gray-300 rounded-full text-xs font-semibold text-gray-900 placeholder-gray-400 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 shadow-xs transition">
+                <button id="clear-owner-search-btn" onclick="clearOwnerSearch()" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-400 hover:text-gray-600 transition">
+                    <span class="w-4 h-4 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-600">✕</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Category Filter Pills for Owner -->
+        <div class="mb-6 overflow-x-auto pb-2 no-scrollbar">
+            <div class="flex items-center gap-2 min-w-max">
+                <button onclick="filterMyCategory('ALL')" id="my-cat-ALL" class="my-cat-pill px-4 py-2 rounded-full text-xs font-bold transition shadow-sm bg-orange-500 text-white">All My Dishes</button>
+                <button onclick="filterMyCategory('Burgers')" id="my-cat-Burgers" class="my-cat-pill px-4 py-2 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">🍔 Burgers</button>
+                <button onclick="filterMyCategory('Pizza')" id="my-cat-Pizza" class="my-cat-pill px-4 py-2 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">🍕 Pizza</button>
+                <button onclick="filterMyCategory('Lunch')" id="my-cat-Lunch" class="my-cat-pill px-4 py-2 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">🍱 Lunch</button>
+                <button onclick="filterMyCategory('Dinner')" id="my-cat-Dinner" class="my-cat-pill px-4 py-2 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">🍽️ Dinner</button>
+                <button onclick="filterMyCategory('Juice')" id="my-cat-Juice" class="my-cat-pill px-4 py-2 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">🧃 Juice</button>
+                <button onclick="filterMyCategory('Sushi')" id="my-cat-Sushi" class="my-cat-pill px-4 py-2 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">🍣 Sushi</button>
+                <button onclick="filterMyCategory('Healthy')" id="my-cat-Healthy" class="my-cat-pill px-4 py-2 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">🥗 Healthy</button>
+                <button onclick="filterMyCategory('Desserts')" id="my-cat-Desserts" class="my-cat-pill px-4 py-2 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">🍰 Desserts</button>
+                <button onclick="filterMyCategory('Breakfast')" id="my-cat-Breakfast" class="my-cat-pill px-4 py-2 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">🍳 Breakfast</button>
+                <button onclick="filterMyCategory('Beverages')" id="my-cat-Beverages" class="my-cat-pill px-4 py-2 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">🥤 Beverages</button>
+                <button onclick="filterMyCategory('Main Course')" id="my-cat-MainCourse" class="my-cat-pill px-4 py-2 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500">🍛 Main Course</button>
+            </div>
         </div>
 
         <div id="dishes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -147,7 +177,7 @@
         window.location.href = '/login.html';
     }
 
-    document.getElementById('owner-name').innerText = `@${username}`;
+    document.getElementById('owner-name').innerText = username;
 
     function showAlert(msg, isError = false) {
         const box = document.getElementById('alert-box');
@@ -167,67 +197,148 @@
         document.getElementById('add-toggle-text').innerText = isHidden ? 'Add New Food Item' : 'Close Form';
     }
 
+    let myDishesCache = [];
+    let currentMyCategory = 'ALL';
+    let ownerSearchQuery = '';
+
+    function handleOwnerSearch(e) {
+        ownerSearchQuery = (e.target.value || '').trim();
+        const clearBtn = document.getElementById('clear-owner-search-btn');
+        if (ownerSearchQuery) {
+            clearBtn.classList.remove('hidden');
+        } else {
+            clearBtn.classList.add('hidden');
+        }
+        renderMyDishes();
+    }
+
+    function clearOwnerSearch() {
+        const input = document.getElementById('owner-search-input');
+        input.value = '';
+        ownerSearchQuery = '';
+        document.getElementById('clear-owner-search-btn').classList.add('hidden');
+        renderMyDishes();
+        input.focus();
+    }
+
+    function filterMyCategory(cat) {
+        currentMyCategory = cat;
+        document.querySelectorAll('.my-cat-pill').forEach(btn => {
+            btn.className = 'my-cat-pill px-4 py-2 rounded-full text-xs font-bold transition shadow-sm bg-white text-gray-700 border border-gray-200 hover:border-orange-500';
+        });
+        const activeBtn = document.getElementById(`my-cat-${cat.replace(/\s+/g, '')}`);
+        if (activeBtn) {
+            activeBtn.className = 'my-cat-pill px-4 py-2 rounded-full text-xs font-bold transition shadow-sm bg-orange-500 text-white';
+        }
+        renderMyDishes();
+    }
+
+    function renderMyDishes() {
+        const container = document.getElementById('dishes-container');
+        let filtered = myDishesCache;
+        if (currentMyCategory !== 'ALL') {
+            const catLower = currentMyCategory.toLowerCase();
+            filtered = filtered.filter(d => {
+                const c = (d.category || '').toLowerCase();
+                const t = (d.itemType || '').toLowerCase();
+                return c.includes(catLower) || t.includes(catLower);
+            });
+        }
+
+        if (ownerSearchQuery) {
+            const qLower = ownerSearchQuery.toLowerCase();
+            filtered = filtered.filter(d => {
+                const n = (d.name || '').toLowerCase();
+                const desc = (d.description || '').toLowerCase();
+                const c = (d.category || '').toLowerCase();
+                return n.includes(qLower) || desc.includes(qLower) || c.includes(qLower);
+            });
+        }
+
+        document.getElementById('dish-count-badge').innerText = `${filtered.length} of ${myDishesCache.length} Dishes`;
+
+        if (!filtered.length) {
+            if (ownerSearchQuery) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-white p-12 rounded-3xl shadow-sm border border-gray-100 text-center">
+                        <span class="text-5xl block mb-4">🔍</span>
+                        <h3 class="text-xl font-bold text-gray-900">No dishes match "${ownerSearchQuery}"</h3>
+                        <p class="text-gray-500 text-sm mt-1">Try another search keyword or clear the search to view all your dishes.</p>
+                        <button onclick="clearOwnerSearch()" class="mt-4 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-xs transition shadow shadow-orange-500/20">
+                            Clear Search
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            const hasCat = currentMyCategory !== 'ALL';
+            container.innerHTML = `
+                <div class="col-span-full bg-white p-12 rounded-3xl shadow-sm border border-gray-100 text-center">
+                    <span class="text-5xl block mb-4">🍽️</span>
+                    <h3 class="text-xl font-bold text-gray-900">${hasCat ? `No ${currentMyCategory} dishes added yet` : 'No dishes on your menu yet'}</h3>
+                    <p class="text-gray-500 text-sm mt-1">${hasCat ? `You haven't added any dishes under the <strong>${currentMyCategory}</strong> category yet.` : 'Click "+ Add New Food Item" above to add your first culinary creation.'}</p>
+                    ${hasCat ? `
+                        <button onclick="document.getElementById('categorySelect').value='${currentMyCategory}'; toggleAddForm();" class="mt-4 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-xs transition shadow shadow-orange-500/20">
+                            + Add ${currentMyCategory} Item Now
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filtered.map(d => {
+            const img = resolveImageUrl(d.imageUrl) || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60';
+            const availBadge = d.available 
+                ? '<span class="px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">● Available</span>'
+                : '<span class="px-2.5 py-1 bg-red-100 text-red-600 rounded-full text-xs font-bold">Out of stock</span>';
+
+            let typeBadge = 'bg-orange-100 text-orange-700';
+            if (d.itemType === 'Dessert') typeBadge = 'bg-pink-100 text-pink-700';
+            if (d.itemType === 'Beverage') typeBadge = 'bg-blue-100 text-blue-700';
+
+            return `
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between hover:shadow-md transition">
+                    <div>
+                        <div class="h-48 w-full bg-gray-100 overflow-hidden relative">
+                            <img src="${img}" alt="${d.name}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60'">
+                            <div class="absolute top-3 left-3 flex items-center gap-1.5">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-black shadow-sm bg-white/95 text-gray-900 border border-gray-100">${d.category || 'Main Course'}</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${typeBadge}">${d.itemType || 'Main Course'}</span>
+                            </div>
+                            <div class="absolute top-3 right-3">
+                                ${availBadge}
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-lg font-black text-gray-900 mb-1">${d.name}</h3>
+                            <p class="text-xs text-gray-500 line-clamp-2 mb-4">${d.description || ''}</p>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-xl font-black text-orange-600">Rs. ${(d.finalPrice || d.basePrice).toFixed(2)}</span>
+                                <span class="text-xs text-gray-400">Base: Rs. ${(d.basePrice || 0).toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-6 pb-6 pt-2 flex items-center justify-between border-t border-gray-50">
+                        <a href="/product-edit.html?id=${d.id}" class="text-xs font-bold text-gray-700 hover:text-orange-500 transition flex items-center gap-1">
+                            ✏️ Edit Item
+                        </a>
+                        <button onclick="handleDeleteDish(${d.id}, '${d.name.replace(/'/g, "\\'")}')" class="text-xs font-bold text-red-500 hover:text-red-700 transition">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
     function loadDishes() {
         fetch(`http://localhost:8080/api/products/my?username=${encodeURIComponent(username)}`)
             .then(r => r.json())
             .then(dishes => {
-                const container = document.getElementById('dishes-container');
-                document.getElementById('dish-count-badge').innerText = `${dishes ? dishes.length : 0} Dishes`;
-
-                if (!dishes || !dishes.length) {
-                    container.innerHTML = `
-                        <div class="col-span-full bg-white p-12 rounded-3xl shadow-sm border border-gray-100 text-center">
-                            <span class="text-5xl block mb-4">🍽️</span>
-                            <h3 class="text-xl font-bold text-gray-900">No dishes on your menu yet</h3>
-                            <p class="text-gray-500 text-sm mt-1">Click "+ Add New Food Item" above to add your first culinary creation.</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                container.innerHTML = dishes.map(d => {
-                    const img = resolveImageUrl(d.imageUrl) || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60';
-                    const availBadge = d.available 
-                        ? '<span class="px-2.5 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">● Available</span>'
-                        : '<span class="px-2.5 py-1 bg-red-100 text-red-600 rounded-full text-xs font-bold">Out of stock</span>';
-
-                    let typeBadge = 'bg-orange-100 text-orange-700';
-                    if (d.itemType === 'Dessert') typeBadge = 'bg-pink-100 text-pink-700';
-                    if (d.itemType === 'Beverage') typeBadge = 'bg-blue-100 text-blue-700';
-
-                    return `
-                        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between hover:shadow-md transition">
-                            <div>
-                                <div class="h-48 w-full bg-gray-100 overflow-hidden relative">
-                                    <img src="${img}" alt="${d.name}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60'">
-                                    <div class="absolute top-3 left-3 flex items-center gap-1.5">
-                                        <span class="px-2.5 py-1 rounded-full text-xs font-black shadow-sm bg-white/95 text-gray-900 border border-gray-100">${d.category || 'Main Course'}</span>
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${typeBadge}">${d.itemType || 'Main Course'}</span>
-                                    </div>
-                                    <div class="absolute top-3 right-3">
-                                        ${availBadge}
-                                    </div>
-                                </div>
-                                <div class="p-6">
-                                    <h3 class="text-lg font-black text-gray-900 mb-1">${d.name}</h3>
-                                    <p class="text-xs text-gray-500 line-clamp-2 mb-4">${d.description || ''}</p>
-                                    <div class="flex items-baseline gap-2">
-                                        <span class="text-xl font-black text-orange-600">Rs. ${(d.finalPrice || d.basePrice).toFixed(2)}</span>
-                                        <span class="text-xs text-gray-400">Base: Rs. ${(d.basePrice || 0).toFixed(2)}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="px-6 pb-6 pt-2 flex items-center justify-between border-t border-gray-50">
-                                <a href="/product-edit.html?id=${d.id}" class="text-xs font-bold text-gray-700 hover:text-orange-500 transition flex items-center gap-1">
-                                    ✏️ Edit Item
-                                </a>
-                                <button onclick="handleDeleteDish(${d.id}, '${d.name.replace(/'/g, "\\'")}')" class="text-xs font-bold text-red-500 hover:text-red-700 transition">
-                                    🗑️ Delete
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+                myDishesCache = dishes || [];
+                renderMyDishes();
             })
             .catch(err => {
                 console.error(err);

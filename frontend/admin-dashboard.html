@@ -442,7 +442,7 @@
         window.location.href = '/login.html';
     }
 
-    document.getElementById('admin-greeting').innerText = `Logged in as @${adminUsername}`;
+    document.getElementById('admin-greeting').innerText = `Logged in as ${adminUsername}`;
 
     let allUsersCache = [];
     let allOrdersCache = [];
@@ -529,7 +529,7 @@
                                         <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black ${isReplied ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${m.status}</span>
                                     </div>
                                     <h3 class="text-base font-extrabold text-gray-900 mt-1">${m.subject}</h3>
-                                    <p class="text-xs text-gray-500">From: <strong class="text-gray-800">${m.customerName}</strong> (${m.customerEmail} ${m.customerPhone ? '| ' + m.customerPhone : ''}) | Customer: <strong>@${m.customerUsername}</strong></p>
+                                    <p class="text-xs text-gray-500">From: <strong class="text-gray-800">${m.customerName}</strong> • ${m.customerEmail} ${m.customerPhone ? '• ' + m.customerPhone : ''} • Customer: <strong>${m.customerUsername}</strong></p>
                                 </div>
                                 <span class="text-xs text-gray-400 font-medium">${m.createdAt ? new Date(m.createdAt).toLocaleString() : ''}</span>
                             </div>
@@ -641,7 +641,7 @@
                                     <div>
                                         <div class="flex items-center gap-2">
                                             <h4 class="font-black text-gray-900 text-base">${v.fullName}</h4>
-                                            <span class="text-xs text-gray-400">@${v.username}</span>
+                                            <span class="text-xs text-gray-400">${v.username}</span>
                                         </div>
                                         <p class="text-xs text-gray-500 mt-0.5">📞 ${v.phoneNumber} | ✉️ ${v.email}</p>
                                     </div>
@@ -765,7 +765,7 @@
                 <tr class="hover:bg-gray-50/50">
                     <td class="py-4 px-6">
                         <span class="font-bold text-gray-900">${u.fullName || u.username}</span>
-                        <span class="block text-xs text-gray-400">@${u.username}</span>
+                        <span class="block text-xs text-gray-400">${u.username}</span>
                     </td>
                     <td class="py-4 px-6 text-gray-600">${u.email}</td>
                     <td class="py-4 px-6 text-gray-600">${u.specificField || '<span class="text-gray-400 italic">None</span>'}</td>
@@ -798,7 +798,7 @@
                 <tr class="hover:bg-gray-50/50">
                     <td class="py-4 px-6">
                         <span class="font-bold text-gray-900">${u.fullName || u.username}</span>
-                        <span class="block text-xs text-gray-400">@${u.username}</span>
+                        <span class="block text-xs text-gray-400">${u.username}</span>
                     </td>
                     <td class="py-4 px-6 font-bold text-amber-700">${u.specificField || 'N/A'}</td>
                     <td class="py-4 px-6 text-gray-600">${u.email}</td>
@@ -831,7 +831,7 @@
                 <tr class="hover:bg-gray-50/50">
                     <td class="py-4 px-6">
                         <span class="font-bold text-gray-900">${u.fullName || u.username}</span>
-                        <span class="block text-xs text-gray-400">@${u.username}</span>
+                        <span class="block text-xs text-gray-400">${u.username}</span>
                     </td>
                     <td class="py-4 px-6 font-bold text-purple-700">${u.specificField || 'N/A'}</td>
                     <td class="py-4 px-6 text-gray-600">${u.email}</td>
@@ -893,7 +893,7 @@
                     </td>
                     <td class="py-4 px-6">
                         <span class="font-bold text-gray-900">${o.customerName}</span>
-                        <span class="block text-xs text-gray-400">@${o.customerUsername}</span>
+                        <span class="block text-xs text-gray-400">${o.customerUsername}</span>
                     </td>
                     <td class="py-4 px-6 font-medium text-gray-700">${o.restaurantName}</td>
                     <td class="py-4 px-6 font-medium text-gray-700">${o.riderName}</td>

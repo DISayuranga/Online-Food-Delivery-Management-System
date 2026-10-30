@@ -11,8 +11,12 @@
         body { font-family: 'Outfit', sans-serif; }
         .hero-pattern {
             background-color: #fffaf9;
-            background-image: radial-gradient(#fbbf24 0.75px, #fffaf9 0.75px);
-            background-size: 15px 15px;
+            background-image: 
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.80) 0%, rgba(255, 250, 248, 0.74) 50%, rgba(255, 255, 255, 0.95) 100%),
+                url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
         }
         /* Hide scrollbar for category scroll */
         .no-scrollbar::-webkit-scrollbar {
@@ -48,9 +52,21 @@
         Order from hundreds of local restaurants. Fast delivery, real-time tracking, and exceptional customer service.
     </p>
     
-    <div class="w-full max-w-xl relative mb-16 flex items-center">
-        <input type="text" placeholder="Enter your delivery address..." class="w-full pl-6 pr-40 py-5 rounded-full border-2 border-gray-200 shadow-xl focus:border-orange-500 focus:outline-none text-lg font-medium transition-all hover:shadow-2xl">
-        <a id="find-food-btn" href="/products-list.html" class="absolute right-2 px-8 py-3.5 bg-orange-500 text-white font-bold rounded-full hover:bg-gray-900 transition-colors shadow-lg">Find Food</a>
+    <form id="hero-search-form" onsubmit="handleHeroSearch(event)" class="w-full max-w-2xl relative mb-4 flex items-center">
+        <div class="absolute left-6 text-gray-400 text-xl pointer-events-none">🔍</div>
+        <input type="text" id="hero-search-input" placeholder="Search delicious dishes, burgers, pizza, juices, restaurants..." class="w-full pl-14 pr-36 py-5 rounded-full border-2 border-gray-200/90 shadow-xl focus:border-orange-500 focus:outline-none text-base md:text-lg font-medium transition-all hover:shadow-2xl bg-white/95 backdrop-blur-md">
+        <button type="submit" id="find-food-btn" class="absolute right-2 px-8 py-3.5 bg-orange-500 hover:bg-gray-900 text-white font-bold rounded-full transition-colors shadow-lg cursor-pointer text-sm md:text-base">Find Food</button>
+    </form>
+
+    <!-- Quick Search Badges -->
+    <div class="flex flex-wrap items-center justify-center gap-2 mb-16 text-xs font-bold text-gray-600">
+        <span class="text-gray-400">Popular:</span>
+        <a href="/products-list.html?search=burger" class="px-3.5 py-1.5 bg-white/90 hover:bg-orange-500 hover:text-white rounded-full border border-gray-200 shadow-xs transition backdrop-blur-xs">🍔 Burgers</a>
+        <a href="/products-list.html?search=pizza" class="px-3.5 py-1.5 bg-white/90 hover:bg-orange-500 hover:text-white rounded-full border border-gray-200 shadow-xs transition backdrop-blur-xs">🍕 Pizza</a>
+        <a href="/products-list.html?category=Lunch" class="px-3.5 py-1.5 bg-white/90 hover:bg-orange-500 hover:text-white rounded-full border border-gray-200 shadow-xs transition backdrop-blur-xs">🍱 Lunch</a>
+        <a href="/products-list.html?category=Juice" class="px-3.5 py-1.5 bg-white/90 hover:bg-orange-500 hover:text-white rounded-full border border-gray-200 shadow-xs transition backdrop-blur-xs">🧃 Juice</a>
+        <a href="/products-list.html?category=Desserts" class="px-3.5 py-1.5 bg-white/90 hover:bg-orange-500 hover:text-white rounded-full border border-gray-200 shadow-xs transition backdrop-blur-xs">🍰 Desserts</a>
+        <a href="/products-list.html?search=biryani" class="px-3.5 py-1.5 bg-white/90 hover:bg-orange-500 hover:text-white rounded-full border border-gray-200 shadow-xs transition backdrop-blur-xs">🍛 Biryani</a>
     </div>
 </main>
 
@@ -382,6 +398,17 @@
                     </div>
                 `;
             });
+    }
+
+    function handleHeroSearch(e) {
+        e.preventDefault();
+        const input = document.getElementById('hero-search-input');
+        const query = (input ? input.value : '').trim();
+        if (query) {
+            window.location.href = `/products-list.html?search=${encodeURIComponent(query)}`;
+        } else {
+            window.location.href = '/products-list.html';
+        }
     }
 
     function scrollCategory(direction) {

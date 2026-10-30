@@ -96,7 +96,7 @@
         window.location.href = '/login.html';
     }
 
-    document.getElementById('owner-name').innerText = `@${username}`;
+    document.getElementById('owner-name').innerText = username;
     document.getElementById('download-report-btn').href = `http://localhost:8080/api/orders/reports/restaurant-sales?username=${encodeURIComponent(username)}`;
 
     function loadSalesSummary() {

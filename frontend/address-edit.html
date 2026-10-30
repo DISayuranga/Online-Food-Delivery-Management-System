@@ -166,7 +166,7 @@
             document.getElementById('zipCode').value = data.zipCode;
 
             if (data.addressType === 'Home Address') {
-                document.getElementById('specificDetailsLabel').innerText = "Gate/Security Code (Optional)";
+                document.getElementById('specificDetailsLabel').innerText = "Gate/Security Code";
                 document.getElementById('specificDetails').value = data.gateSecurityCode || '';
             } else {
                 document.getElementById('specificDetailsLabel').innerText = "Floor & Company Name";

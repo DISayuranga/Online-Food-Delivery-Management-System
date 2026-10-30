@@ -43,7 +43,7 @@ public class ContactController {
                 rMap.put("targetId", owner.getId());
                 String rName = owner.getRestaurantName() != null && !owner.getRestaurantName().isEmpty() 
                         ? owner.getRestaurantName() : owner.getFullName();
-                rMap.put("displayName", "🏪 Restaurant: " + rName + " (" + owner.getFullName() + ")");
+                rMap.put("displayName", "🏪 Restaurant: " + rName + " • " + owner.getFullName());
                 targets.add(rMap);
             }
         }
@@ -55,7 +55,7 @@ public class ContactController {
                 Map<String, Object> rdMap = new HashMap<>();
                 rdMap.put("targetType", "RIDER");
                 rdMap.put("targetId", rider.getId());
-                rdMap.put("displayName", "🛵 Delivery Rider: " + rider.getFullName() + " (@" + rider.getUsername() + ")");
+                rdMap.put("displayName", "🛵 Delivery Rider: " + rider.getFullName());
                 targets.add(rdMap);
             }
         }
@@ -143,15 +143,15 @@ public class ContactController {
 
         if (user instanceof Admin) {
             role = "ADMIN";
-            responderName = user.getFullName() + " (Platform Support & Admin)";
+            responderName = user.getFullName() + " • Platform Support & Admin";
         } else if (user instanceof RestaurantOwner) {
             RestaurantOwner owner = (RestaurantOwner) user;
             role = "RESTAURANT";
             String rName = owner.getRestaurantName() != null ? owner.getRestaurantName() : owner.getFullName();
-            responderName = rName + " (Restaurant Owner - " + owner.getFullName() + ")";
+            responderName = rName + " • Restaurant Owner " + owner.getFullName();
         } else if (user instanceof Rider) {
             role = "RIDER";
-            responderName = user.getFullName() + " (Assigned Rider)";
+            responderName = user.getFullName() + " • Assigned Rider";
         } else {
             return ResponseEntity.status(403).body(Map.of("error", "Only Admin, Restaurant Owners, or Riders can reply"));
         }

@@ -37,7 +37,7 @@
     <!-- Filter Buttons -->
     <div class="flex space-x-2 mb-6 overflow-x-auto pb-2">
         <button onclick="filterStatus('ALL')" id="filter-ALL" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-orange-500 text-white shadow-sm">All Orders</button>
-        <button onclick="filterStatus('PLACED')" id="filter-PLACED" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200">New (Placed)</button>
+        <button onclick="filterStatus('PLACED')" id="filter-PLACED" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200">New Orders</button>
         <button onclick="filterStatus('PREPARING')" id="filter-PREPARING" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200">Preparing in Kitchen</button>
         <button onclick="filterStatus('OUT_FOR_DELIVERY')" id="filter-OUT_FOR_DELIVERY" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200">Out for Delivery</button>
     </div>
@@ -85,7 +85,7 @@
         window.location.href = '/login.html';
     }
 
-    document.getElementById('owner-name').innerText = `@${username}`;
+    document.getElementById('owner-name').innerText = username;
 
     let cachedOrders = [];
     let currentFilter = 'ALL';
@@ -161,7 +161,7 @@
                 statusBadge = '<span class="px-3 py-1 text-xs font-black rounded-full bg-amber-100 text-amber-700 uppercase tracking-wider">In Kitchen</span>';
                 actionButtons = `
                     <button onclick="advance(${o.id}, 'OUT_FOR_DELIVERY')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition shadow-md shadow-green-600/20 flex items-center gap-1">
-                        <span>🛵</span> Ready for Delivery (Handover to Rider)
+                        <span>🛵</span> Ready for Delivery • Handover to Rider
                     </button>
                     <button onclick="advance(${o.id}, 'CANCELLED')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 px-4 rounded-xl text-sm transition border border-red-200">
                         Cancel Order
@@ -201,7 +201,7 @@
                                         ${imgTag}
                                         <div class="truncate">
                                             <p class="text-xs font-extrabold text-gray-900 truncate">${item.name}</p>
-                                            <span class="text-[10px] text-gray-500 font-semibold">${item.quantity}x ${item.itemType ? `(${item.itemType})` : ''}</span>
+                                            <span class="text-[10px] text-gray-500 font-semibold">${item.quantity}x ${item.itemType ? `• ${item.itemType}` : ''}</span>
                                         </div>
                                     </div>
                                     <span class="text-xs font-black text-gray-800 shrink-0">${item.price ? 'Rs. ' + Number(item.price).toFixed(2) : ''}</span>

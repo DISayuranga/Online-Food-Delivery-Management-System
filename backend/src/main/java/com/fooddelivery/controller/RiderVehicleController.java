@@ -92,9 +92,9 @@ public class RiderVehicleController {
                 Path target1 = Paths.get("uploads", filename);
                 Files.write(target1, vehicleImage.getBytes());
 
-                File uploadDir2 = new File("frontend/uploads");
+                File uploadDir2 = new File("frontend/uploads").exists() ? new File("frontend/uploads") : new File("../frontend/uploads");
                 if (!uploadDir2.exists()) uploadDir2.mkdirs();
-                Path target2 = Paths.get("frontend/uploads", filename);
+                Path target2 = new File(uploadDir2, filename).toPath();
                 Files.write(target2, vehicleImage.getBytes());
 
                 rider.setVehicleImageUrl("/uploads/" + filename);

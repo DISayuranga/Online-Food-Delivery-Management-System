@@ -235,7 +235,7 @@
         </div>
     </div>
 
-    <!-- TAB 2: Delivery Locations (CRUD with Map) -->
+    <!-- TAB 2: Delivery Locations with Map -->
     <div id="tab-locations-section" class="hidden space-y-8">
         
         <!-- Header & Add Toggle -->
@@ -317,7 +317,7 @@
                 </div>
 
                 <div>
-                    <label id="addr-detail-label" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Gate / Security Code (Optional)</label>
+                    <label id="addr-detail-label" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Gate / Security Code</label>
                     <input type="text" id="addr-specificDetail" placeholder="e.g. Black gate, Ring bell #3" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
                 </div>
 
@@ -335,7 +335,7 @@
 
     </div>
 
-    <!-- TAB 3: Payment Cards (CRUD with SVG Realistic Display) -->
+    <!-- TAB 3: Payment Cards with SVG Realistic Display -->
     <div id="tab-cards-section" class="hidden space-y-8">
         
         <!-- Header & Add Toggle -->
@@ -366,8 +366,8 @@
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Card Type</label>
                         <select id="card-type" required onchange="handleCardTypeChange()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
-                            <option value="CREDIT">Credit Card (Visa / Mastercard)</option>
-                            <option value="DEBIT">Debit Card (Direct Bank Transfer)</option>
+                            <option value="CREDIT">Credit Card • Visa / Mastercard</option>
+                            <option value="DEBIT">Debit Card • Direct Bank Transfer</option>
                         </select>
                     </div>
                     <div>
@@ -378,16 +378,16 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Card Number (16 Digits)</label>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Card Number • 16 Digits</label>
                         <input type="text" id="card-number" required maxlength="19" placeholder="4111 2222 3333 4444" oninput="formatCardNumberInput(this)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono tracking-widest font-bold focus:ring-2 focus:ring-orange-500 outline-none">
                     </div>
                     <div>
-                        <label id="card-detail-label" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Credit Limit (Rs.)</label>
+                        <label id="card-detail-label" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Credit Limit • Rs.</label>
                         <input type="text" id="card-specificDetail" placeholder="e.g. 50000" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
                     </div>
                 </div>
 
-                <!-- Expiry Date (Month / Year) and CVV -->
+                <!-- Expiry Date and CVV -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Expiry Month</label>
@@ -422,7 +422,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">CVV / CVC (3-4 Digits)</label>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">CVV / CVC • 3-4 Digits</label>
                         <input type="password" id="card-cvv" required maxlength="4" placeholder="•••" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono tracking-widest font-bold focus:ring-2 focus:ring-orange-500 outline-none">
                     </div>
                 </div>
@@ -595,7 +595,7 @@
     }
 
     /* -------------------------------------------------------------
-       DELIVERY LOCATIONS CRUD & INTERACTIVE MAP ROUTING
+       DELIVERY LOCATIONS & INTERACTIVE MAP ROUTING
     ------------------------------------------------------------- */
     function initAddressMap() {
         if (addressMap) {
@@ -681,10 +681,10 @@
         const label = document.getElementById('addr-detail-label');
         const input = document.getElementById('addr-specificDetail');
         if (type === 'HOME') {
-            label.innerText = 'Gate / Security Code (Optional)';
+            label.innerText = 'Gate / Security Code';
             input.placeholder = 'e.g. Black gate, Ring bell #3';
         } else {
-            label.innerText = 'Floor & Company Name (Office Details)';
+            label.innerText = 'Floor & Company Name • Office Details';
             input.placeholder = 'e.g. 5th Floor, Suite 502, TechCorp';
         }
     }
@@ -869,7 +869,7 @@
 
 
     /* -------------------------------------------------------------
-       ONLINE PAYMENT CARDS CRUD & REALISTIC SVG DISPLAY
+       ONLINE PAYMENT CARDS & REALISTIC SVG DISPLAY
     ------------------------------------------------------------- */
     function toggleCardForm(show) {
         const container = document.getElementById('card-form-container');
@@ -894,11 +894,11 @@
         const label = document.getElementById('card-detail-label');
         const input = document.getElementById('card-specificDetail');
         if (type === 'CREDIT') {
-            label.innerText = 'Credit Limit (Rs.)';
+            label.innerText = 'Credit Limit • Rs.';
             input.placeholder = 'e.g. 50000';
             input.type = 'number';
         } else {
-            label.innerText = 'Bank Name (Debit Account)';
+            label.innerText = 'Bank Name • Debit Account';
             input.placeholder = 'e.g. Commercial Bank';
             input.type = 'text';
         }

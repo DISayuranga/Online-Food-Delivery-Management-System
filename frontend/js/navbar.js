@@ -14,6 +14,7 @@
             // Guest Navigation
             leftLinks = `
                 <a href="/index.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Home</a>
+                <a href="/services.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Our Services</a>
                 <a href="/about.html" class="hover:text-orange-500 font-bold text-gray-700 transition">About Us</a>
                 <a href="/products-list.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Food</a>
                 <a href="/contact.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Contact Us</a>
@@ -24,9 +25,10 @@
             `;
         } else if (role === 'CUSTOMER') {
             // Customer Side Navigation (Exact Order Requested):
-            // 1. Home, 2. About us, 3. Food, 4. My Cart, 5. My Orders, 6. Contact us, 7. Profile & Settings
+            // 1. Home, 2. Our Services, 3. About us, 4. Food, 5. My Cart, 6. My Orders, 7. Contact us, 8. Profile & Settings
             leftLinks = `
                 <a href="/index.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Home</a>
+                <a href="/services.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Our Services</a>
                 <a href="/about.html" class="hover:text-orange-500 font-bold text-gray-700 transition">About Us</a>
                 <a href="/products-list.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Food</a>
                 <a href="/cart-view.html" class="hover:text-orange-500 font-bold text-gray-700 transition">My Cart</a>
@@ -36,7 +38,7 @@
             `;
             rightLinks = `
                 <a href="/cart-view.html" class="bg-orange-100 text-orange-600 px-4 py-2 rounded-full font-bold hover:bg-orange-200 transition text-sm flex items-center gap-1 shadow-sm">🛒 Cart</a>
-                <span class="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full font-bold">@${username}</span>
+                <span class="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full font-bold">${username}</span>
                 <button onclick="craveBiteLogout()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-xs font-bold hover:bg-red-50 hover:text-red-500 transition">Log out</button>
             `;
         } else if (role === 'RESTAURANT_OWNER') {
@@ -90,7 +92,7 @@
                 <a href="/contact.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Contact Us</a>
             `;
             rightLinks = `
-                <a href="/profile.html" class="text-gray-700 hover:text-orange-500 font-bold text-sm transition">Dashboard (@${username})</a>
+                <a href="/profile.html" class="text-gray-700 hover:text-orange-500 font-bold text-sm transition">Profile & Settings</a>
                 <button onclick="craveBiteLogout()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-xs font-bold hover:bg-red-50 hover:text-red-500 transition">Log out</button>
             `;
         }
@@ -133,10 +135,12 @@
         document.addEventListener('DOMContentLoaded', () => {
             renderNavbar();
             loadChatbot();
+            loadValidator();
         });
     } else {
         renderNavbar();
         loadChatbot();
+        loadValidator();
     }
 
     function loadChatbot() {
@@ -145,6 +149,15 @@
             botScript.id = 'cravebot-script';
             botScript.src = '/js/chatbot.js';
             document.body.appendChild(botScript);
+        }
+    }
+
+    function loadValidator() {
+        if (!document.getElementById('crave-validator-script')) {
+            const valScript = document.createElement('script');
+            valScript.id = 'crave-validator-script';
+            valScript.src = '/js/validator.js';
+            document.body.appendChild(valScript);
         }
     }
 })();
