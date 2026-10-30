@@ -78,7 +78,7 @@
             </div>
 
             <div id="specificDetailsContainer">
-                <label id="specificDetailsLabel" for="specificDetails" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Gate / Security Code (Optional)</label>
+                <label id="specificDetailsLabel" for="specificDetails" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Gate / Security Code</label>
                 <input type="text" name="specificDetails" id="specificDetails" placeholder="e.g. Building A, Ring Bell #2"
                        class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-orange-500 transition">
             </div>
@@ -160,7 +160,7 @@
         const input = document.getElementById("specificDetails");
 
         if (type === "HOME") {
-            label.innerText = "Gate/Security Code (Optional)";
+            label.innerText = "Gate/Security Code";
             input.placeholder = "e.g., Gate code #1234";
         } else if (type === "OFFICE") {
             label.innerText = "Floor & Company Name";

@@ -27,11 +27,11 @@
             <p class="text-sm text-gray-500 font-medium">Your feedback helps local restaurants and riders maintain exceptional quality!</p>
 
             <div>
-                <label for="reviewType" class="block text-sm font-bold text-gray-700 mb-2">What are you reviewing? (OOP Polymorphism)</label>
+                <label for="reviewType" class="block text-sm font-bold text-gray-700 mb-2">What are you reviewing?</label>
                 <select name="reviewType" id="reviewType" required onchange="handleTypeChange()"
                         class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium outline-none focus:border-orange-500 transition">
-                    <option value="FOOD">Food Quality (Restaurant Dish)</option>
-                    <option value="DELIVERY">Delivery Service (Rider)</option>
+                    <option value="FOOD">Food Quality • Restaurant Dish</option>
+                    <option value="DELIVERY">Delivery Service • Rider</option>
                 </select>
             </div>
 
@@ -39,7 +39,7 @@
                 <label id="targetLabel" for="targetId" class="block text-sm font-bold text-gray-700 mb-2">Select Item</label>
                 <select name="targetId" id="targetId"
                         class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium outline-none focus:border-orange-500 transition">
-                    <option value="">General Review (No specific target)</option>
+                    <option value="">General Review • No specific target</option>
                 </select>
             </div>
 
@@ -47,11 +47,11 @@
                 <label for="rating" class="block text-sm font-bold text-gray-700 mb-2">Star Rating</label>
                 <select name="rating" id="rating" required
                         class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium outline-none focus:border-orange-500 transition">
-                    <option value="5">⭐⭐⭐⭐⭐ (5/5) - Outstanding</option>
-                    <option value="4">⭐⭐⭐⭐ (4/5) - Very Good</option>
-                    <option value="3">⭐⭐⭐ (3/5) - Average</option>
-                    <option value="2">⭐⭐ (2/5) - Needs Improvement</option>
-                    <option value="1">⭐ (1/5) - Disappointing</option>
+                    <option value="5">⭐⭐⭐⭐⭐ 5/5 - Outstanding</option>
+                    <option value="4">⭐⭐⭐⭐ 4/5 - Very Good</option>
+                    <option value="3">⭐⭐⭐ 3/5 - Average</option>
+                    <option value="2">⭐⭐ 2/5 - Needs Improvement</option>
+                    <option value="1">⭐ 1/5 - Disappointing</option>
                 </select>
             </div>
 
@@ -97,7 +97,7 @@
         const targetLabel = document.getElementById('targetLabel');
         const targetSelect = document.getElementById('targetId');
 
-        targetSelect.innerHTML = '<option value="">General Review (No specific target)</option>';
+        targetSelect.innerHTML = '<option value="">General Review • No specific target</option>';
 
         if (type === 'FOOD') {
             targetLabel.innerText = "Select Food Dish";

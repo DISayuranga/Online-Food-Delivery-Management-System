@@ -34,7 +34,7 @@
         </div>
     </div>
 
-    <!-- Vehicle Status Banner & Card (CRUD) -->
+    <!-- Vehicle Status Banner & Card -->
     <div class="mb-10 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-100 mb-6">
             <div>
@@ -132,7 +132,7 @@
                     <option value="BIKE">🏍️ Motorcycle / Motorbike</option>
                     <option value="SCOOTER">🛵 Scooter</option>
                     <option value="CAR">🚗 Car</option>
-                    <option value="THREE_WHEELER">🛺 Three-Wheeler (Tuk Tuk)</option>
+                    <option value="THREE_WHEELER">🛺 Three-Wheeler • Tuk Tuk</option>
                     <option value="VAN">🚐 Delivery Van</option>
                     <option value="BICYCLE">🚲 Bicycle</option>
                 </select>
@@ -155,7 +155,7 @@
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Upload Vehicle Photo (from device)</label>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Upload Vehicle Photo</label>
                 <div class="flex items-center gap-3">
                     <label class="flex-1 flex flex-col items-center justify-center p-3.5 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-orange-500 hover:bg-orange-50/20 transition">
                         <span class="text-xs font-bold text-gray-600" id="vehicle-file-label">📁 Choose Vehicle Photo</span>
@@ -195,7 +195,7 @@
         window.location.href = '/login.html';
     }
 
-    document.getElementById('rider-badge').innerText = `@${username}`;
+    document.getElementById('rider-badge').innerText = username;
     document.getElementById('download-report-btn').href = `http://localhost:8080/api/orders/reports/rider-deliveries?username=${encodeURIComponent(username)}`;
 
     const skippedOrderIds = new Set();

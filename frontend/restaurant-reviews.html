@@ -73,7 +73,7 @@
         window.location.href = '/login.html';
     }
 
-    document.getElementById('owner-name').innerText = `@${username}`;
+    document.getElementById('owner-name').innerText = username;
 
     function loadReviews() {
         fetch(`http://localhost:8080/api/reviews/restaurant?username=${encodeURIComponent(username)}`)
