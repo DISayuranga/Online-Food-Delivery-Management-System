@@ -170,7 +170,7 @@ function generateBotResponse(input) {
                 <li>Add food items to <a href="/cart-view.html" class="text-orange-500 font-bold underline">Your Cart</a>.</li>
                 <li>Proceed to <strong>Checkout</strong>.</li>
                 <li>Under <em>Delivery Timing & Schedule</em>, select <strong>⏰ Schedule for Later</strong>.</li>
-                <li>Pick your preferred <strong>Date</strong> (e.g. tomorrow) and <strong>Time</strong>.</li>
+                <li>Pick your preferred <strong>Date</strong> like tomorrow and <strong>Time</strong>.</li>
             </ol>
             <p class="text-gray-500 text-[11px]">The restaurant will see your schedule and prepare your meal right on time!</p>
         `;
