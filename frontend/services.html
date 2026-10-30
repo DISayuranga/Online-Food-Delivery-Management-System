@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Services - CraveBite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen selection:bg-orange-500 selection:text-white">
+
+<!-- Dynamic Navbar -->
+<nav id="cravebite-nav"></nav>
+
+<main class="flex-grow">
+    <!-- Hero Header with Background Image -->
+    <div class="relative py-28 md:py-36 px-4 overflow-hidden text-center text-white" style="background-image: linear-gradient(135deg, rgba(17, 24, 39, 0.92) 0%, rgba(30, 20, 10, 0.85) 50%, rgba(17, 24, 39, 0.94) 100%), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1920&q=80'); background-size: cover; background-position: center; background-attachment: fixed;">
+        <div class="max-w-4xl mx-auto relative z-10">
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/30 backdrop-blur-md text-orange-300 text-xs font-black uppercase tracking-widest mb-4 border border-orange-400/30">
+                Customer Services & Logistics
+            </span>
+            <h1 class="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight mb-6 leading-tight">
+                Crafted for Cravings, <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-300">Delivered with Care.</span>
+            </h1>
+            <p class="text-lg md:text-xl text-gray-300 font-medium max-w-2xl mx-auto leading-relaxed">
+                Discover the full suite of customer-first dining and delivery services designed to bring meals to your table effortlessly.
+            </p>
+        </div>
+    </div>
+
+    <!-- Services Overview Cards Grid -->
+    <div class="max-w-7xl mx-auto py-20 px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+            <span class="inline-block bg-orange-100 text-orange-700 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-3">What We Offer</span>
+            <h2 class="text-3xl md:text-5xl font-black text-gray-900 tracking-tight">Our Core Customer Services</h2>
+            <p class="text-gray-500 mt-2 text-sm md:text-base">Everything you need for a frictionless food ordering experience from kitchen to door.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Service 1: Express Instant Delivery -->
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-orange-200 transition duration-300 flex flex-col justify-between group">
+                <div>
+                    <div class="w-14 h-14 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
+                        ⚡
+                    </div>
+                    <h3 class="text-xl font-black text-gray-900 mb-3">Express Instant Delivery</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                        Hungry right now? Place your order and our automated dispatch system pairs your meal with nearby verified riders, delivering fresh in 20 to 30 minutes.
+                    </p>
+                </div>
+                <div class="pt-4 border-t border-gray-100 text-xs font-bold text-orange-600 flex items-center gap-1">
+                    <span>Active 8:00 AM – 11:30 PM Daily</span>
+                </div>
+            </div>
+
+            <!-- Service 2: Scheduled Advance Orders -->
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-orange-200 transition duration-300 flex flex-col justify-between group">
+                <div>
+                    <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
+                        ⏰
+                    </div>
+                    <h3 class="text-xl font-black text-gray-900 mb-3">Scheduled Food Orders</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                        Plan ahead! Pick any date and time — like tomorrow's breakfast or an upcoming office lunch. Restaurants view your schedule and start cooking right on time.
+                    </p>
+                </div>
+                <div class="pt-4 border-t border-gray-100 text-xs font-bold text-purple-600 flex items-center gap-1">
+                    <span>Custom Date & Time Selection</span>
+                </div>
+            </div>
+
+            <!-- Service 3: Local Restaurant Menus -->
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-orange-200 transition duration-300 flex flex-col justify-between group">
+                <div>
+                    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
+                        🍽️
+                    </div>
+                    <h3 class="text-xl font-black text-gray-900 mb-3">Curated Restaurant Menus</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                        Browse top local favorites: gourmet burgers, artisan woodfired pizza, wholesome lunch bento boxes, authentic kottu roti, freshly squeezed juices, and desserts.
+                    </p>
+                </div>
+                <div class="pt-4 border-t border-gray-100 text-xs font-bold text-blue-600 flex items-center gap-1">
+                    <span>150+ Verified Kitchen Partners</span>
+                </div>
+            </div>
+
+            <!-- Service 4: GPS Interactive Map Pin -->
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-orange-200 transition duration-300 flex flex-col justify-between group">
+                <div>
+                    <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
+                        📍
+                    </div>
+                    <h3 class="text-xl font-black text-gray-900 mb-3">Pinpoint Map Delivery</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                        No confusing directions. Use our interactive map to drop an exact GPS pin, specify gate codes or office floor details, and guide riders directly to your doorway.
+                    </p>
+                </div>
+                <div class="pt-4 border-t border-gray-100 text-xs font-bold text-emerald-600 flex items-center gap-1">
+                    <span>GPS Navigation for Riders</span>
+                </div>
+            </div>
+
+            <!-- Service 5: Polymorphic Payments -->
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-orange-200 transition duration-300 flex flex-col justify-between group">
+                <div>
+                    <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
+                        💳
+                    </div>
+                    <h3 class="text-xl font-black text-gray-900 mb-3">Flexible & Secure Payments</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                        Pay with saved Credit or Debit cards, encrypted with PCI-standard tokenization, or choose Cash on Delivery at your doorstep. Zero hidden fees.
+                    </p>
+                </div>
+                <div class="pt-4 border-t border-gray-100 text-xs font-bold text-amber-600 flex items-center gap-1">
+                    <span>256-Bit SSL Encryption</span>
+                </div>
+            </div>
+
+            <!-- Service 6: 24/7 Support & CraveBot -->
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-orange-200 transition duration-300 flex flex-col justify-between group">
+                <div>
+                    <div class="w-14 h-14 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform">
+                        💬
+                    </div>
+                    <h3 class="text-xl font-black text-gray-900 mb-3">Direct Inquiries & CraveBot AI</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                        Get instant assistance anytime with our intelligent CraveBot, or send direct inquiries to restaurants, delivery riders, or platform admin with reply alerts.
+                    </p>
+                </div>
+                <div class="pt-4 border-t border-gray-100 text-xs font-bold text-red-600 flex items-center gap-1">
+                    <span>Direct Two-Way Messaging</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Highlights Banner -->
+    <div class="bg-white py-16 border-y border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="p-6">
+                    <span class="text-4xl block mb-3">🛡️</span>
+                    <h4 class="text-lg font-black text-gray-900 mb-1">Insulated Heat Bags</h4>
+                    <p class="text-gray-500 text-xs">All meals transported in temperature-controlled bags keeping food hot and drinks chilled.</p>
+                </div>
+                <div class="p-6">
+                    <span class="text-4xl block mb-3">✨</span>
+                    <h4 class="text-lg font-black text-gray-900 mb-1">Sealed Hygiene Packaging</h4>
+                    <p class="text-gray-500 text-xs">Tamper-evident seals applied by our partner kitchens before dispatching to riders.</p>
+                </div>
+                <div class="p-6">
+                    <span class="text-4xl block mb-3">📞</span>
+                    <h4 class="text-lg font-black text-gray-900 mb-1">Real-Time Hotline & Help</h4>
+                    <p class="text-gray-500 text-xs">Quick resolution team standing by to handle delivery queries or order modifications.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="max-w-4xl mx-auto py-20 px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <span class="inline-block bg-orange-100 text-orange-700 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-3">Got Questions?</span>
+            <h2 class="text-3xl font-black text-gray-900 tracking-tight">Frequently Asked Questions</h2>
+        </div>
+
+        <div class="space-y-4">
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <h4 class="font-bold text-gray-900 mb-2">How does Scheduled Delivery work?</h4>
+                <p class="text-sm text-gray-600">During checkout, select 'Schedule for Later' and choose your preferred date and time slot. The kitchen will prepare the dish right before the delivery window so it arrives hot.</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <h4 class="font-bold text-gray-900 mb-2">Can I cancel an order once placed?</h4>
+                <p class="text-sm text-gray-600">Yes! If the order is in the initial 'PLACED' status before the restaurant starts cooking, you can cancel it with one click from 'My Orders'.</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <h4 class="font-bold text-gray-900 mb-2">What payment methods can I use?</h4>
+                <p class="text-sm text-gray-600">We accept major Credit & Debit cards (Visa, MasterCard, Amex) saved securely under your profile, as well as Cash on Delivery.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div class="rounded-3xl p-10 md:p-16 text-center text-white relative overflow-hidden shadow-2xl" style="background-image: linear-gradient(135deg, rgba(17, 24, 39, 0.92) 0%, rgba(30, 18, 10, 0.85) 50%, rgba(234, 88, 12, 0.90) 100%), url('https://images.unsplash.com/photo-1543353071-873f17a7a088?auto=format&fit=crop&w=1920&q=80'); background-size: cover; background-position: center;">
+            <div class="relative z-10 max-w-2xl mx-auto">
+                <h2 class="text-3xl md:text-5xl font-black tracking-tight mb-4 text-white">Experience Seamless Food Delivery</h2>
+                <p class="text-gray-200 text-sm md:text-base mb-8 font-medium">Explore dishes from local culinary artists or schedule your next meal now.</p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="/products-list.html" class="px-8 py-3.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-full transition shadow-lg shadow-orange-500/30 text-sm">
+                        Explore Food Menu
+                    </a>
+                    <a href="/index.html" class="px-8 py-3.5 bg-white/20 hover:bg-white/30 text-white font-bold rounded-full transition text-sm border border-white/30 backdrop-blur">
+                        Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer class="bg-gray-900 py-12 text-gray-400">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm">
+        <p>&copy; 2026 CraveBite Inc. All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="/js/navbar.js"></script>
+</body>
+</html>
