@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -78,15 +79,27 @@ public class OrderController {
     @GetMapping("/history")
     public ResponseEntity<?> viewOrderHistory(@RequestParam String username) {
         User user = userRepository.findByUsername(username).orElse(null);
-        if (user == null || !(user instanceof Customer)) return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+        if (user == null) return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
 
-        Customer customer = (Customer) user;
-        List<OrderRecord> deliveredOrders = orderRepository.findByCustomerOrderByOrderDateDesc(customer)
-                .stream()
-                .filter(order -> order.getOrderStatus().equals("DELIVERED"))
-                .collect(Collectors.toList());
+        if (user instanceof Customer) {
+            Customer customer = (Customer) user;
+            List<OrderRecord> deliveredOrders = orderRepository.findByCustomerOrderByOrderDateDesc(customer)
+                    .stream()
+                    .filter(order -> order.getOrderStatus().equals("DELIVERED"))
+                    .collect(Collectors.toList());
 
-        return ResponseEntity.ok(deliveredOrders.stream().map(this::orderToMap).collect(Collectors.toList()));
+            return ResponseEntity.ok(deliveredOrders.stream().map(this::orderToMap).collect(Collectors.toList()));
+        } else if (user instanceof Rider) {
+            Rider rider = (Rider) user;
+            List<OrderRecord> riderOrders = orderRepository.findByRiderOrderByOrderDateDesc(rider);
+            return ResponseEntity.ok(riderOrders.stream().map(this::orderToMap).collect(Collectors.toList()));
+        } else if (user instanceof RestaurantOwner) {
+            RestaurantOwner owner = (RestaurantOwner) user;
+            List<OrderRecord> ownerOrders = orderRepository.findByRestaurantOrderByOrderDateDesc(owner);
+            return ResponseEntity.ok(ownerOrders.stream().map(this::orderToMap).collect(Collectors.toList()));
+        }
+
+        return ResponseEntity.ok(List.of());
     }
 
     @PostMapping("/cancel/{id}")
@@ -109,6 +122,78 @@ public class OrderController {
             } else {
                 return ResponseEntity.badRequest().body(Map.of("error", "Cannot cancel order once restaurant has accepted or prepared it"));
             }
+        }
+        return ResponseEntity.status(403).body(Map.of("error", "Unauthorized"));
+    }
+
+    @PostMapping("/schedule/update")
+    public ResponseEntity<?> updateScheduledOrder(
+            @RequestParam Long orderId,
+            @RequestParam String username,
+            @RequestParam String scheduledTime) {
+
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null || !(user instanceof Customer)) return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+
+        OrderRecord order = orderRepository.findById(orderId).orElse(null);
+        if (order == null) return ResponseEntity.badRequest().body(Map.of("error", "Order not found"));
+
+        Customer customer = (Customer) user;
+        if (!order.getCustomer().getId().equals(customer.getId())) {
+            return ResponseEntity.status(403).body(Map.of("error", "Unauthorized: Not your order"));
+        }
+
+        if (!"PLACED".equals(order.getOrderStatus())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Cannot modify schedule once restaurant has accepted or started cooking this order"));
+        }
+
+        if (scheduledTime == null || scheduledTime.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Scheduled date and time cannot be empty"));
+        }
+
+        String cleanTime = scheduledTime.trim().replace("Scheduled: ", "").trim();
+        try {
+            LocalDateTime targetTime = null;
+            if (cleanTime.contains("T")) {
+                targetTime = LocalDateTime.parse(cleanTime);
+            } else if (cleanTime.matches("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}(:\\d{2})?")) {
+                cleanTime = cleanTime.replace(" ", "T");
+                targetTime = LocalDateTime.parse(cleanTime);
+            }
+            if (targetTime != null && targetTime.isBefore(LocalDateTime.now())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Scheduled delivery time cannot be in the past. Please select a future date and time."));
+            }
+        } catch (Exception ignored) {
+        }
+
+        order.setScheduledTime("Scheduled: " + cleanTime.replace("T", " "));
+        orderRepository.save(order);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Order schedule updated successfully!",
+                "scheduledTime", order.getScheduledTime()
+        ));
+    }
+
+    @PostMapping("/delete/{id}")
+    public ResponseEntity<?> deleteOrder(@PathVariable Long id, @RequestParam String username) {
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+
+        OrderRecord order = orderRepository.findById(id).orElse(null);
+        if (order == null) return ResponseEntity.badRequest().body(Map.of("error", "Order not found"));
+
+        if (user instanceof Customer) {
+            Customer customer = (Customer) user;
+            if (!order.getCustomer().getId().equals(customer.getId())) {
+                return ResponseEntity.status(403).body(Map.of("error", "Not your order"));
+            }
+            if (!"PLACED".equals(order.getOrderStatus())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Cannot delete order once restaurant has accepted or started cooking it"));
+            }
+            orderRepository.delete(order);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Order completely deleted"));
         }
         return ResponseEntity.status(403).body(Map.of("error", "Unauthorized"));
     }
