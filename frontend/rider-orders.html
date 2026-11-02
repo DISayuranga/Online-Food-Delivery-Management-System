@@ -6,6 +6,8 @@
     <title>Rider Dashboard - CraveBite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <style>body { font-family: 'Outfit', sans-serif; }</style>
 </head>
 <body class="bg-gray-50 min-h-screen selection:bg-orange-500 selection:text-white flex flex-col">
@@ -13,57 +15,76 @@
 <!-- Dynamic Role Navbar -->
 <nav id="cravebite-nav"></nav>
 
-<main class="flex-grow max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 pb-6 border-b border-gray-200">
-        <div>
-            <div class="flex items-center gap-2">
-                <span class="bg-green-100 text-green-800 font-extrabold px-3 py-1 rounded-full text-xs uppercase tracking-wider">Delivery Fleet</span>
-                <span id="rider-badge" class="text-xs text-gray-500 font-medium"></span>
+<main class="flex-grow max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Header Banner with Background Image -->
+    <div class="relative overflow-hidden rounded-3xl mb-8 shadow-xl bg-gray-950 text-white border border-gray-800">
+        <img src="https://images.unsplash.com/photo-1526367790999-0150786686a2?auto=format&fit=crop&w=1920&q=80" 
+             alt="Rider Delivery Fleet" 
+             class="absolute inset-0 w-full h-full object-cover opacity-20">
+        <div class="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-900/90 to-transparent"></div>
+
+        <div class="relative z-10 p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-orange-500 text-white font-black px-3.5 py-1 rounded-full text-xs uppercase tracking-wider shadow">Rider Fleet Console</span>
+                    <span id="rider-badge" class="text-xs text-orange-200 font-mono bg-white/10 px-3 py-1 rounded-full backdrop-blur"></span>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight">Rider Dispatch Console</h1>
+                <p class="text-gray-300 text-sm mt-1 max-w-2xl">
+                    Accept kitchen-ready orders, direct GPS navigation, manage your registered delivery vehicles, and download delivery trip PDF reports.
+                </p>
             </div>
-            <h1 class="text-3xl md:text-4xl font-black text-gray-900 tracking-tight mt-1">Rider Dispatch Console</h1>
-            <p class="text-gray-500 text-sm">Accept or skip ready orders, open direct Google Maps navigation, and deliver safely.</p>
-        </div>
-        <div class="flex gap-3">
-            <button onclick="loadOrders()" class="bg-white hover:bg-gray-100 text-gray-700 px-4 py-2.5 rounded-2xl border border-gray-200 font-bold transition flex items-center gap-2 text-sm shadow-sm">
-                <span>🔄</span> Refresh Orders
-            </button>
-            <a id="download-report-btn" href="#" target="_blank" class="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-2xl font-bold transition flex items-center gap-2 text-sm shadow shadow-orange-500/20">
-                <span>📄</span> Download Report
-            </a>
+            <div class="flex flex-wrap items-center gap-3">
+                <button onclick="loadOrders()" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-2xl font-bold transition flex items-center gap-2 text-sm backdrop-blur border border-white/20 shadow">
+                    <span>🔄</span> Refresh Orders
+                </button>
+                <button onclick="downloadRiderDeliveriesPdf(event)" id="download-report-btn" class="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-2xl font-bold transition flex items-center gap-2 text-sm shadow-lg shadow-orange-500/30">
+                    <span>📑</span> Download PDF Report
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Vehicle Status Banner & Card -->
+    <!-- Vehicles Management Section (Multiple Vehicles Support) -->
     <div class="mb-10 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-100 mb-6">
             <div>
-                <div class="flex items-center gap-2">
-                    <h2 class="text-xl font-black text-gray-900">🛵 My Delivery Vehicle</h2>
-                    <span id="vehicle-status-badge" class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-gray-100 text-gray-600">Checking...</span>
+                <div class="flex items-center gap-3">
+                    <h2 class="text-xl font-black text-gray-900">🛵 My Delivery Vehicles</h2>
+                    <span id="fleet-count-badge" class="px-3 py-0.5 rounded-full text-xs font-black bg-orange-100 text-orange-700">0 Vehicles</span>
+                    <span id="vehicle-status-badge" class="px-3 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-gray-100 text-gray-600">Checking...</span>
                 </div>
-                <p class="text-xs text-gray-500 mt-0.5">Manage your registered delivery vehicle. New details and uploaded photos require Admin validation.</p>
+                <p class="text-xs text-gray-500 mt-1">
+                    You can register multiple delivery vehicles. Adding or editing a vehicle requires Admin approval. Vehicles can be deleted instantly at any time.
+                </p>
             </div>
-            <button onclick="openVehicleModal()" class="px-4 py-2.5 bg-gray-900 hover:bg-orange-500 text-white rounded-2xl text-xs font-bold transition flex items-center gap-1.5 shadow">
-                <span>⚙️</span> Update Vehicle Details
+            <button onclick="openVehicleModalForAdd()" class="px-4 py-2.5 bg-gray-900 hover:bg-orange-500 text-white rounded-2xl text-xs font-bold transition flex items-center gap-2 shadow">
+                <span>➕</span> Add Another Vehicle
             </button>
         </div>
 
-        <div id="vehicle-details-card" class="flex flex-col sm:flex-row items-center gap-6">
-            <div id="vehicle-photo-container" class="w-32 h-28 rounded-2xl bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
-                <span class="text-4xl">🛵</span>
-            </div>
-            <div class="space-y-1.5 text-sm flex-1 text-center sm:text-left">
-                <p id="vehicle-type-display" class="text-lg font-black text-gray-900">Motorcycle / Bike</p>
-                <p class="text-xs text-gray-600">Plate Number: <span id="vehicle-plate-display" class="font-mono font-extrabold bg-gray-100 px-2 py-0.5 rounded text-gray-900">Not Registered</span></p>
-                <p class="text-xs text-gray-600">Model & Color: <span id="vehicle-model-color-display" class="font-medium text-gray-800">N/A</span></p>
-                <p id="vehicle-admin-note" class="text-xs font-semibold text-gray-500 italic"></p>
-            </div>
+        <!-- Vehicles Grid -->
+        <div id="vehicles-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <p class="text-gray-400 font-medium animate-pulse text-sm col-span-full py-4 text-center">Loading registered vehicles...</p>
         </div>
 
-        <div id="vehicle-alert-banner" class="hidden mt-4 p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 font-bold flex items-center gap-2">
-            <span>⚠️</span>
-            <span id="vehicle-alert-text">Your vehicle is pending Admin validation. Deliveries are disabled until Admin approval.</span>
+        <div id="vehicle-alert-banner" class="hidden mt-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 font-bold flex items-center gap-2">
+            <span class="text-base">⚠️</span>
+            <span id="vehicle-alert-text">You do not have any Admin-approved vehicles. Order pickup actions are disabled until at least one vehicle is approved.</span>
+        </div>
+    </div>
+
+    <!-- Orders Filter & Search Toolbar -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+            <h2 class="text-xl font-black text-gray-900">Live Delivery Queue</h2>
+            <p class="text-xs text-gray-500">Live order status and dispatch queue</p>
+        </div>
+        <!-- Compact live search bar on the right side -->
+        <div class="w-full sm:w-80 relative">
+            <input type="text" id="rider-orders-search" oninput="handleRiderSearch(this.value)" placeholder="🔍 Search Order #ID, restaurant, address..." class="w-full bg-white border border-gray-200 rounded-2xl px-4 py-2.5 text-xs font-medium focus:ring-2 focus:ring-orange-500 outline-none shadow-sm transition">
+            <span id="rider-search-clear" onclick="clearRiderSearch()" class="hidden absolute right-3 top-2.5 text-xs text-gray-400 hover:text-gray-700 cursor-pointer font-bold">✕</span>
         </div>
     </div>
 
@@ -71,7 +92,7 @@
     <div class="mb-12">
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-                <h2 class="text-2xl font-black text-gray-900">My Active Deliveries</h2>
+                <h3 class="text-2xl font-black text-gray-900">My Active Deliveries</h3>
                 <span id="active-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700">0 In Transit</span>
             </div>
         </div>
@@ -84,13 +105,13 @@
     <div>
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-                <h2 class="text-2xl font-black text-gray-900">Available Orders for Pickup</h2>
+                <h3 class="text-2xl font-black text-gray-900">Available Orders for Pickup</h3>
                 <span id="available-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-700">0 Ready</span>
             </div>
-            <p class="text-xs text-gray-400">Claim or skip orders as needed</p>
+            <p class="text-xs text-gray-400">Accept or skip orders</p>
         </div>
         <div id="available-container" class="space-y-4">
-            <p class="text-gray-400 font-medium animate-pulse">Scanning for restaurant ready orders...</p>
+            <p class="text-gray-400 font-medium animate-pulse">Scanning for kitchen-ready orders...</p>
         </div>
     </div>
 
@@ -114,18 +135,20 @@
     </div>
 </main>
 
-<!-- Vehicle Update Modal -->
+<!-- Vehicle Add / Edit Modal -->
 <div id="vehicleModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 border border-gray-100 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
             <div>
-                <h3 class="text-xl font-bold text-gray-900">Register / Update Vehicle</h3>
-                <p class="text-xs text-gray-500 mt-0.5">Submit your vehicle photo & registration for Admin approval</p>
+                <h3 id="vehicle-modal-title" class="text-xl font-bold text-gray-900">Register New Vehicle</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Submit your vehicle details and photo for Admin approval</p>
             </div>
             <button onclick="closeVehicleModal()" class="text-gray-400 hover:text-gray-900 text-2xl font-bold">&times;</button>
         </div>
 
         <form id="vehicleForm" onsubmit="handleSaveVehicle(event)" enctype="multipart/form-data" class="space-y-5">
+            <input type="hidden" name="vehicleId" id="input-vehicle-id" value="">
+
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Vehicle Type</label>
                 <select name="vehicleType" id="input-vehicle-type" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-orange-500">
@@ -159,7 +182,7 @@
                 <div class="flex items-center gap-3">
                     <label class="flex-1 flex flex-col items-center justify-center p-3.5 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-orange-500 hover:bg-orange-50/20 transition">
                         <span class="text-xs font-bold text-gray-600" id="vehicle-file-label">📁 Choose Vehicle Photo</span>
-                        <span class="text-[10px] text-gray-400 mt-0.5">JPG, PNG, WEBP from your computer</span>
+                        <span class="text-[10px] text-gray-400 mt-0.5">JPG, PNG, WEBP from your device</span>
                         <input type="file" name="vehicleImage" id="input-vehicle-file" accept="image/*" class="hidden" onchange="handleVehicleImagePreview(this)">
                     </label>
                     <div id="vehicleModalPreviewContainer" class="w-16 h-16 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden shrink-0 hidden">
@@ -169,8 +192,8 @@
             </div>
 
             <div class="flex justify-between items-center pt-4 border-t border-gray-100">
-                <button type="button" onclick="deleteVehicle()" class="text-xs text-red-500 hover:text-red-700 font-bold underline">Delete Vehicle</button>
-                <div class="flex gap-2">
+                <button type="button" id="modal-delete-btn" onclick="handleModalDelete()" class="hidden text-xs text-red-500 hover:text-red-700 font-bold underline">Delete This Vehicle</button>
+                <div class="flex gap-2 ml-auto">
                     <button type="button" onclick="closeVehicleModal()" class="px-5 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 text-sm">Cancel</button>
                     <button type="submit" class="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition text-sm shadow">Submit for Approval</button>
                 </div>
@@ -185,6 +208,7 @@
     </div>
 </footer>
 
+<script src="/js/notify.js"></script>
 <script src="/js/navbar.js"></script>
 <script>
     const username = localStorage.getItem('username');
@@ -196,69 +220,156 @@
     }
 
     document.getElementById('rider-badge').innerText = username;
-    document.getElementById('download-report-btn').href = `http://localhost:8080/api/orders/reports/rider-deliveries?username=${encodeURIComponent(username)}`;
 
     const skippedOrderIds = new Set();
-    let currentVehicleStatus = 'PENDING_APPROVAL';
+    let hasApprovedVehicle = false;
+    let registeredVehicles = [];
+    let rawMineOrders = [];
+    let rawAvailableOrders = [];
+    let currentSearchQuery = '';
+
+    const resolveImg = u => !u ? '' : (u.startsWith('/') && window.location.port !== '8080' ? 'http://localhost:8080' + u : u);
 
     function loadVehicleDetails() {
         fetch(`http://localhost:8080/api/rider/vehicle?username=${encodeURIComponent(username)}`)
             .then(r => r.json())
-            .then(v => {
-                currentVehicleStatus = v.vehicleApprovalStatus || 'PENDING_APPROVAL';
-                const isApproved = v.isApproved;
+            .then(data => {
+                hasApprovedVehicle = !!data.isApproved;
+                registeredVehicles = data.vehicles || [];
+
+                const fleetBadge = document.getElementById('fleet-count-badge');
+                fleetBadge.innerText = `${registeredVehicles.length} Vehicle${registeredVehicles.length === 1 ? '' : 's'}`;
 
                 const badge = document.getElementById('vehicle-status-badge');
                 const alertBanner = document.getElementById('vehicle-alert-banner');
-                const alertText = document.getElementById('vehicle-alert-text');
 
-                if (isApproved) {
-                    badge.className = 'px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-green-100 text-green-700';
-                    badge.innerText = '✓ Approved & Active';
+                if (hasApprovedVehicle) {
+                    badge.className = 'px-3 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-green-100 text-green-700';
+                    badge.innerText = '✓ Delivery Active';
                     alertBanner.classList.add('hidden');
-                } else if (v.vehicleApprovalStatus === 'REJECTED') {
-                    badge.className = 'px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-red-100 text-red-700';
-                    badge.innerText = '✕ Rejected by Admin';
+                } else if (registeredVehicles.length === 0) {
+                    badge.className = 'px-3 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-gray-100 text-gray-600';
+                    badge.innerText = 'No Vehicles';
                     alertBanner.classList.remove('hidden');
-                    alertBanner.className = 'mt-4 p-3.5 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-900 font-bold flex items-center gap-2';
-                    alertText.innerText = `Vehicle Rejected: ${v.vehicleAdminNotes || 'Please update your vehicle details and re-submit for Admin approval.'}`;
+                    document.getElementById('vehicle-alert-text').innerText = 'You have not added any delivery vehicles. Click "+ Add Another Vehicle" to register one.';
                 } else {
-                    badge.className = 'px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-700 animate-pulse';
+                    badge.className = 'px-3 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-700 animate-pulse';
                     badge.innerText = '⏳ Pending Admin Approval';
                     alertBanner.classList.remove('hidden');
-                    alertBanner.className = 'mt-4 p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-900 font-bold flex items-center gap-2';
-                    alertText.innerText = 'Your vehicle details are awaiting Super Admin verification. You will be able to claim deliveries once approved.';
+                    document.getElementById('vehicle-alert-text').innerText = 'All registered vehicles are awaiting Admin verification. Delivery actions are disabled until at least one vehicle is approved.';
                 }
 
-                document.getElementById('vehicle-type-display').innerText = v.vehicleTypeDisplay || 'Motorcycle / Bike';
-                document.getElementById('vehicle-plate-display').innerText = v.vehiclePlateNumber || 'Not Registered';
-                document.getElementById('vehicle-model-color-display').innerText = `${v.vehicleModel || 'N/A'} • ${v.vehicleColor || 'N/A'}`;
-                document.getElementById('vehicle-admin-note').innerText = v.vehicleAdminNotes ? `Admin Note: ${v.vehicleAdminNotes}` : '';
-
-                const resolveImg = u => !u ? '' : (u.startsWith('/') && window.location.port !== '8080' ? 'http://localhost:8080' + u : u);
-                const photoContainer = document.getElementById('vehicle-photo-container');
-                if (v.vehicleImageUrl) {
-                    photoContainer.innerHTML = `<img src="${resolveImg(v.vehicleImageUrl)}" alt="Vehicle" class="w-full h-full object-cover">`;
-                } else {
-                    photoContainer.innerHTML = `<span class="text-4xl">🛵</span>`;
-                }
-
-                document.getElementById('input-vehicle-type').value = v.vehicleType || 'BIKE';
-                document.getElementById('input-vehicle-plate').value = v.vehiclePlateNumber || '';
-                document.getElementById('input-vehicle-model').value = v.vehicleModel || '';
-                document.getElementById('input-vehicle-color').value = v.vehicleColor || '';
-                if (v.vehicleImageUrl) {
-                    document.getElementById('vehicleModalPreview').src = resolveImg(v.vehicleImageUrl);
-                    document.getElementById('vehicleModalPreviewContainer').classList.remove('hidden');
-                    document.getElementById('vehicle-file-label').innerText = 'Change Vehicle Photo';
-                }
+                renderVehiclesGrid();
             })
             .catch(err => {
                 console.error('Error fetching vehicle details:', err);
             });
     }
 
-    function openVehicleModal() {
+    function renderVehiclesGrid() {
+        const grid = document.getElementById('vehicles-grid');
+        if (!registeredVehicles.length) {
+            grid.innerHTML = `
+                <div class="col-span-full bg-gray-50 p-8 rounded-2xl border border-dashed border-gray-200 text-center">
+                    <span class="text-4xl block mb-2">🛵</span>
+                    <h4 class="font-bold text-gray-800 text-sm">No vehicles registered yet</h4>
+                    <p class="text-xs text-gray-400 mt-1 mb-4">Add your motorcycle, scooter, or car to start accepting delivery orders.</p>
+                    <button onclick="openVehicleModalForAdd()" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition shadow">
+                        + Add Vehicle Now
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        const typeIcons = {
+            'BIKE': '🏍️', 'SCOOTER': '🛵', 'CAR': '🚗',
+            'THREE_WHEELER': '🛺', 'VAN': '🚐', 'BICYCLE': '🚲'
+        };
+
+        grid.innerHTML = registeredVehicles.map(v => {
+            const icon = typeIcons[v.vehicleType] || '🛵';
+            const isApproved = v.vehicleApprovalStatus === 'APPROVED';
+            const isRejected = v.vehicleApprovalStatus === 'REJECTED';
+
+            let statusBadge = '';
+            if (isApproved) {
+                statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-green-100 text-green-700">✓ Approved</span>';
+            } else if (isRejected) {
+                statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-red-100 text-red-700">✕ Rejected</span>`;
+            } else {
+                statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-100 text-amber-700 animate-pulse">⏳ Pending Approval</span>';
+            }
+
+            const imgHtml = v.vehicleImageUrl 
+                ? `<img src="${resolveImg(v.vehicleImageUrl)}" alt="Vehicle" class="w-20 h-20 rounded-2xl object-cover border border-gray-100 shrink-0 shadow-sm">`
+                : `<div class="w-20 h-20 rounded-2xl bg-orange-50 flex items-center justify-center text-3xl shrink-0 border border-orange-100">${icon}</div>`;
+
+            const adminNotes = v.vehicleAdminNotes ? `<p class="text-[11px] text-gray-500 italic mt-1">Note: ${v.vehicleAdminNotes}</p>` : '';
+
+            return `
+                <div class="bg-gray-50/70 hover:bg-gray-50 p-5 rounded-2xl border border-gray-100 transition flex flex-col justify-between gap-4">
+                    <div class="flex items-start gap-4">
+                        ${imgHtml}
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-xs font-black text-gray-500 uppercase tracking-wider">${icon} ${v.vehicleType || 'BIKE'}</span>
+                                ${statusBadge}
+                            </div>
+                            <h4 class="text-base font-black text-gray-900 mt-0.5 font-mono tracking-wider">${v.vehiclePlateNumber}</h4>
+                            <p class="text-xs text-gray-600 font-medium truncate">${v.vehicleModel || 'Model N/A'} • ${v.vehicleColor || 'Color N/A'}</p>
+                            ${adminNotes}
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-end gap-2 pt-2 border-t border-gray-200/50">
+                        <button onclick="openVehicleModalForEdit(${v.id})" class="px-3 py-1.5 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold transition">
+                            ✏️ Edit
+                        </button>
+                        <button onclick="deleteSpecificVehicle(${v.id})" class="px-3 py-1.5 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white rounded-xl text-xs font-bold transition border border-red-200">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function openVehicleModalForAdd() {
+        document.getElementById('vehicle-modal-title').innerText = 'Register New Vehicle';
+        document.getElementById('input-vehicle-id').value = '';
+        document.getElementById('input-vehicle-type').value = 'BIKE';
+        document.getElementById('input-vehicle-plate').value = '';
+        document.getElementById('input-vehicle-model').value = '';
+        document.getElementById('input-vehicle-color').value = '';
+        document.getElementById('input-vehicle-file').value = '';
+        document.getElementById('vehicleModalPreviewContainer').classList.add('hidden');
+        document.getElementById('vehicle-file-label').innerText = '📁 Choose Vehicle Photo';
+        document.getElementById('modal-delete-btn').classList.add('hidden');
+        document.getElementById('vehicleModal').classList.remove('hidden');
+    }
+
+    function openVehicleModalForEdit(id) {
+        const v = registeredVehicles.find(item => item.id === id);
+        if (!v) return;
+
+        document.getElementById('vehicle-modal-title').innerText = 'Update Vehicle Details';
+        document.getElementById('input-vehicle-id').value = v.id;
+        document.getElementById('input-vehicle-type').value = v.vehicleType || 'BIKE';
+        document.getElementById('input-vehicle-plate').value = v.vehiclePlateNumber || '';
+        document.getElementById('input-vehicle-model').value = v.vehicleModel || '';
+        document.getElementById('input-vehicle-color').value = v.vehicleColor || '';
+        document.getElementById('input-vehicle-file').value = '';
+
+        if (v.vehicleImageUrl) {
+            document.getElementById('vehicleModalPreview').src = resolveImg(v.vehicleImageUrl);
+            document.getElementById('vehicleModalPreviewContainer').classList.remove('hidden');
+            document.getElementById('vehicle-file-label').innerText = 'Change Vehicle Photo';
+        } else {
+            document.getElementById('vehicleModalPreviewContainer').classList.add('hidden');
+            document.getElementById('vehicle-file-label').innerText = '📁 Choose Vehicle Photo';
+        }
+
+        document.getElementById('modal-delete-btn').classList.remove('hidden');
         document.getElementById('vehicleModal').classList.remove('hidden');
     }
 
@@ -304,10 +415,18 @@
         });
     }
 
-    function deleteVehicle() {
-        if (!confirm('Are you sure you want to delete your vehicle details?')) return;
+    function handleModalDelete() {
+        const id = document.getElementById('input-vehicle-id').value;
+        if (!id) return;
+        deleteSpecificVehicle(id);
+    }
+
+    function deleteSpecificVehicle(vehicleId) {
+        if (!confirm('Are you sure you want to delete this vehicle? It will be removed immediately from your profile.')) return;
+        
         const params = new URLSearchParams();
         params.append('username', username);
+        params.append('vehicleId', vehicleId);
 
         fetch(`http://localhost:8080/api/rider/vehicle/delete`, {
             method: 'POST',
@@ -316,9 +435,13 @@
         })
         .then(r => r.json())
         .then(data => {
-            alert('Vehicle details removed');
+            alert('Vehicle completely deleted.');
             closeVehicleModal();
             loadVehicleDetails();
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Server error deleting vehicle');
         });
     }
 
@@ -332,11 +455,10 @@
     }
 
     function renderOrderItemsHtml(o) {
-        const resolveImg = u => !u ? '' : (u.startsWith('/') && window.location.port !== '8080' ? 'http://localhost:8080' + u : u);
-        if (o.itemsList && o.itemsList.length > 0) {
+        if (o.items && o.items.length) {
             return `
-                <div class="space-y-1.5 mt-2 max-h-36 overflow-y-auto">
-                    ${o.itemsList.map(item => {
+                <div class="space-y-1.5">
+                    ${o.items.map(item => {
                         let imgTag = item.imageUrl 
                             ? `<img src="${resolveImg(item.imageUrl)}" alt="${item.name}" class="w-9 h-9 rounded-lg object-cover border border-gray-200 shrink-0 shadow-xs" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60'">`
                             : `<div class="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center text-sm shrink-0">🍛</div>`;
@@ -356,127 +478,160 @@
         return `<p class="text-xs text-gray-600"><strong>📦 Items:</strong> ${o.itemsSummary || 'Food items'}</p>`;
     }
 
+    function handleRiderSearch(query) {
+        currentSearchQuery = (query || '').toLowerCase().trim();
+        const clearBtn = document.getElementById('rider-search-clear');
+        if (currentSearchQuery) {
+            clearBtn.classList.remove('hidden');
+        } else {
+            clearBtn.classList.add('hidden');
+        }
+        filterAndRenderOrders();
+    }
+
+    function clearRiderSearch() {
+        document.getElementById('rider-orders-search').value = '';
+        handleRiderSearch('');
+    }
+
+    function filterOrder(o) {
+        if (!currentSearchQuery) return true;
+        const q = currentSearchQuery;
+        const idMatch = String(o.id || '').toLowerCase().includes(q);
+        const restMatch = (o.restaurantName || '').toLowerCase().includes(q);
+        const custMatch = (o.customerName || '').toLowerCase().includes(q);
+        const addrMatch = (o.deliveryAddress || '').toLowerCase().includes(q);
+        const itemsMatch = (o.itemsSummary || '').toLowerCase().includes(q);
+        const dishMatch = o.items ? o.items.some(i => (i.name || '').toLowerCase().includes(q)) : false;
+        return idMatch || restMatch || custMatch || addrMatch || itemsMatch || dishMatch;
+    }
+
+    function filterAndRenderOrders() {
+        const myContainer = document.getElementById('my-container');
+        const availableContainer = document.getElementById('available-container');
+
+        const filteredMine = rawMineOrders.filter(filterOrder);
+        const filteredAvailable = rawAvailableOrders.filter(o => !skippedOrderIds.has(o.id)).filter(filterOrder);
+
+        document.getElementById('active-count-badge').innerText = `${filteredMine.length} In Transit`;
+        document.getElementById('available-count-badge').innerText = `${filteredAvailable.length} Ready`;
+
+        // Render Active Deliveries
+        if (!filteredMine.length) {
+            myContainer.innerHTML = `
+                <div class="bg-white p-8 rounded-3xl border border-gray-100 text-center shadow-sm">
+                    <span class="text-4xl block mb-2">🛵</span>
+                    <h4 class="font-bold text-gray-800 text-base">${currentSearchQuery ? 'No active deliveries matching search' : 'You have no active deliveries'}</h4>
+                    <p class="text-xs text-gray-400 mt-1">${currentSearchQuery ? 'Try another keyword or clear search.' : 'Accept an order from the available list below to start routing.'}</p>
+                </div>
+            `;
+        } else {
+            myContainer.innerHTML = filteredMine.map(o => {
+                const destination = o.deliveryAddress || 'Customer Location';
+                const mapsUrl = getGoogleMapsUrl(destination);
+                const phoneCall = o.customerPhone ? `<a href="tel:${o.customerPhone}" class="px-3 py-2 bg-blue-50 text-blue-700 rounded-xl text-xs font-bold hover:bg-blue-100 transition flex items-center gap-1">📞 Call ${o.customerPhone}</a>` : '';
+
+                return `
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-purple-200 ring-2 ring-purple-100">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-gray-100 gap-2 mb-4">
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h4 class="text-xl font-black text-gray-900">Order #${o.id}</h4>
+                                    <span class="px-3 py-1 text-xs font-black rounded-full bg-purple-100 text-purple-700 uppercase tracking-wider">In Transit</span>
+                                    ${o.scheduledTime && o.scheduledTime.includes('Scheduled') ? `<span class="px-2.5 py-0.5 text-[11px] font-black rounded-full bg-purple-100 text-purple-800">⏰ ${o.scheduledTime}</span>` : ''}
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">From: <strong class="text-gray-800">${o.restaurantName}</strong> ➔ To: <strong class="text-gray-800">${o.customerName}</strong></p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block">Customer Pays</span>
+                                <span class="text-xl font-black text-orange-600">Rs. ${(o.totalAmount || 0).toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-purple-50/50 p-4 rounded-2xl border border-purple-100 mb-4 space-y-2">
+                            ${renderOrderItemsHtml(o)}
+                            <p class="text-xs text-gray-700"><strong>📍 Delivery Address:</strong> ${destination}</p>
+                            <p class="text-xs text-gray-600"><strong>👤 Customer:</strong> ${o.customerName} | <strong>📞 Phone:</strong> ${o.customerPhone || 'N/A'}</p>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                            <div class="flex items-center gap-2">
+                                <a href="${mapsUrl}" target="_blank" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                                    <span>🗺️</span> Open Google Maps Navigation
+                                </a>
+                                ${phoneCall}
+                            </div>
+                            <button onclick="advance(${o.id}, 'DELIVERED')" class="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-green-600/20 flex items-center gap-1.5">
+                                <span>✓</span> Mark as Delivered
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render Available Orders
+        if (!filteredAvailable.length) {
+            availableContainer.innerHTML = `
+                <div class="bg-white p-8 rounded-3xl border border-gray-100 text-center shadow-sm">
+                    <span class="text-4xl block mb-2">🍽️</span>
+                    <h4 class="font-bold text-gray-800 text-base">${currentSearchQuery ? 'No available orders matching search' : 'No orders currently waiting for pickup'}</h4>
+                    <p class="text-xs text-gray-400 mt-1">${currentSearchQuery ? 'Try another search term.' : 'Check back in a minute or refresh the console.'}</p>
+                </div>
+            `;
+        } else {
+            availableContainer.innerHTML = filteredAvailable.map(o => {
+                const destination = o.deliveryAddress || 'Customer Address';
+                const mapsUrl = getGoogleMapsUrl(destination);
+
+                return `
+                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:border-gray-200 transition">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-gray-100 gap-2 mb-4">
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h4 class="text-lg font-black text-gray-900">Order #${o.id}</h4>
+                                    <span class="px-3 py-1 text-xs font-bold rounded-full bg-orange-100 text-orange-700">Ready at Kitchen</span>
+                                    ${o.scheduledTime && o.scheduledTime.includes('Scheduled') ? `<span class="px-2.5 py-0.5 text-[11px] font-black rounded-full bg-purple-100 text-purple-800">⏰ ${o.scheduledTime}</span>` : ''}
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Kitchen: <strong class="text-gray-800">${o.restaurantName}</strong> ➔ Customer: <strong class="text-gray-800">${o.customerName}</strong></p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block">Total</span>
+                                <span class="text-lg font-black text-orange-600">Rs. ${(o.totalAmount || 0).toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 mb-4 space-y-2">
+                            ${renderOrderItemsHtml(o)}
+                            <p class="text-xs text-gray-700"><strong>📍 Drop-off:</strong> ${destination}</p>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                            <a href="${mapsUrl}" target="_blank" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition flex items-center gap-1">
+                                <span>🗺️</span> Preview Location in Maps
+                            </a>
+                            <div class="flex items-center gap-2">
+                                <button onclick="skipOrder(${o.id})" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-xs font-bold transition">
+                                    Skip Order
+                                </button>
+                                <button onclick="advance(${o.id}, 'CLAIM')" class="px-5 py-2.5 bg-gray-900 hover:bg-orange-500 text-white rounded-xl text-xs font-bold transition shadow">
+                                    Accept & Claim Delivery
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
     function loadOrders() {
         fetch(`http://localhost:8080/api/orders/tracking?username=${encodeURIComponent(username)}`)
             .then(r => r.json())
             .then(data => {
-                const availableContainer = document.getElementById('available-container');
-                const myContainer = document.getElementById('my-container');
-                
-                const allAvailable = data.availableOrders || [];
-                const available = allAvailable.filter(o => !skippedOrderIds.has(o.id));
-                const mine = data.myDeliveries || [];
-
-                document.getElementById('available-count-badge').innerText = `${available.length} Ready`;
-                document.getElementById('active-count-badge').innerText = `${mine.length} In Transit`;
-
-                // Render My In-Transit Deliveries
-                if (!mine.length) {
-                    myContainer.innerHTML = `
-                        <div class="bg-white p-8 rounded-3xl border border-gray-100 text-center shadow-sm">
-                            <span class="text-4xl block mb-2">🛵</span>
-                            <h3 class="font-bold text-gray-800 text-base">You have no active deliveries</h3>
-                            <p class="text-xs text-gray-400 mt-1">Accept an order from the available list below to start routing.</p>
-                        </div>
-                    `;
-                } else {
-                    myContainer.innerHTML = mine.map(o => {
-                        const destination = o.deliveryAddress || 'Customer Location';
-                        const mapsUrl = getGoogleMapsUrl(destination);
-                        const phoneCall = o.customerPhone ? `<a href="tel:${o.customerPhone}" class="px-3 py-2 bg-blue-50 text-blue-700 rounded-xl text-xs font-bold hover:bg-blue-100 transition flex items-center gap-1">📞 Call ${o.customerPhone}</a>` : '';
-
-                        return `
-                            <div class="bg-white p-6 rounded-3xl shadow-sm border border-purple-200 ring-2 ring-purple-100">
-                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-gray-100 gap-2 mb-4">
-                                    <div>
-                                        <div class="flex items-center gap-2 flex-wrap">
-                                            <h3 class="text-xl font-black text-gray-900">Order #${o.id}</h3>
-                                            <span class="px-3 py-1 text-xs font-black rounded-full bg-purple-100 text-purple-700 uppercase tracking-wider">In Transit</span>
-                                            ${o.scheduledTime && o.scheduledTime.includes('Scheduled') ? `<span class="px-2.5 py-0.5 text-[11px] font-black rounded-full bg-purple-100 text-purple-800">⏰ ${o.scheduledTime}</span>` : ''}
-                                        </div>
-                                        <p class="text-xs text-gray-500 mt-1">From: <strong class="text-gray-800">${o.restaurantName}</strong> ➔ To: <strong class="text-gray-800">${o.customerName}</strong></p>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block">Customer Pays</span>
-                                        <span class="text-xl font-black text-orange-600">Rs. ${(o.totalAmount || 0).toFixed(2)}</span>
-                                    </div>
-                                </div>
-
-                                <div class="bg-purple-50/50 p-4 rounded-2xl border border-purple-100 mb-4 space-y-2">
-                                    ${renderOrderItemsHtml(o)}
-                                    <p class="text-xs text-gray-700"><strong>📍 Delivery Address:</strong> ${destination}</p>
-                                    <p class="text-xs text-gray-600"><strong>👤 Customer:</strong> ${o.customerName} | <strong>📞 Phone:</strong> ${o.customerPhone || 'N/A'}</p>
-                                </div>
-
-                                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-                                    <div class="flex items-center gap-2">
-                                        <a href="${mapsUrl}" target="_blank" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
-                                            <span>🗺️</span> Open Google Maps Navigation
-                                        </a>
-                                        ${phoneCall}
-                                    </div>
-                                    <button onclick="advance(${o.id}, 'DELIVERED')" class="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-green-600/20 flex items-center gap-1.5">
-                                        <span>✓</span> Mark as Delivered
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                }
-
-                // Render Available for Pickup
-                if (!available.length) {
-                    availableContainer.innerHTML = `
-                        <div class="bg-white p-8 rounded-3xl border border-gray-100 text-center shadow-sm">
-                            <span class="text-4xl block mb-2">🍽️</span>
-                            <h3 class="font-bold text-gray-800 text-base">No orders currently waiting for pickup</h3>
-                            <p class="text-xs text-gray-400 mt-1">Check back in a minute or refresh the console.</p>
-                        </div>
-                    `;
-                } else {
-                    availableContainer.innerHTML = available.map(o => {
-                        const destination = o.deliveryAddress || 'Customer Address';
-                        const mapsUrl = getGoogleMapsUrl(destination);
-
-                        return `
-                            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:border-gray-200 transition">
-                                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-gray-100 gap-2 mb-4">
-                                    <div>
-                                        <div class="flex items-center gap-2 flex-wrap">
-                                            <h3 class="text-lg font-black text-gray-900">Order #${o.id}</h3>
-                                            <span class="px-3 py-1 text-xs font-bold rounded-full bg-orange-100 text-orange-700">Ready at Kitchen</span>
-                                            ${o.scheduledTime && o.scheduledTime.includes('Scheduled') ? `<span class="px-2.5 py-0.5 text-[11px] font-black rounded-full bg-purple-100 text-purple-800">⏰ ${o.scheduledTime}</span>` : ''}
-                                        </div>
-                                        <p class="text-xs text-gray-500 mt-1">Kitchen: <strong class="text-gray-800">${o.restaurantName}</strong> ➔ Customer: <strong class="text-gray-800">${o.customerName}</strong></p>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block">Total</span>
-                                        <span class="text-lg font-black text-orange-600">Rs. ${(o.totalAmount || 0).toFixed(2)}</span>
-                                    </div>
-                                </div>
-
-                                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 mb-4 space-y-2">
-                                    ${renderOrderItemsHtml(o)}
-                                    <p class="text-xs text-gray-700"><strong>📍 Drop-off:</strong> ${destination}</p>
-                                </div>
-
-                                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-                                    <a href="${mapsUrl}" target="_blank" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition flex items-center gap-1">
-                                        <span>🗺️</span> Preview Location in Google Maps
-                                    </a>
-                                    <div class="flex items-center gap-2">
-                                        <button onclick="skipOrder(${o.id})" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-xs font-bold transition">
-                                            Skip Order
-                                        </button>
-                                        <button onclick="advance(${o.id}, 'CLAIM')" class="px-5 py-2.5 bg-gray-900 hover:bg-orange-500 text-white rounded-xl text-xs font-bold transition shadow">
-                                            Accept & Claim Delivery
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                }
+                rawMineOrders = data.myDeliveries || [];
+                rawAvailableOrders = data.availableOrders || [];
+                filterAndRenderOrders();
             })
             .catch(err => {
                 console.error(err);
@@ -486,12 +641,12 @@
 
     function skipOrder(orderId) {
         skippedOrderIds.add(orderId);
-        loadOrders();
+        filterAndRenderOrders();
     }
 
     function advance(orderId, nextStatus) {
-        if (nextStatus === 'CLAIM' && currentVehicleStatus !== 'APPROVED') {
-            alert('Cannot claim order: Your vehicle is pending Admin validation. Please wait until Admin approves your vehicle.');
+        if (nextStatus === 'CLAIM' && !hasApprovedVehicle) {
+            alert('Cannot claim order: You do not have an approved delivery vehicle. Please wait until Super Admin approves at least one vehicle.');
             return;
         }
 
@@ -512,6 +667,129 @@
         });
     }
 
+    // Helper to dynamically ensure jsPDF and autotable are ready
+    function ensureJsPdfLoaded(callback) {
+        if (window.jspdf && window.jspdf.jsPDF) {
+            callback();
+            return;
+        }
+
+        const script1 = document.createElement('script');
+        script1.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        script1.onload = () => {
+            const script2 = document.createElement('script');
+            script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';
+            script2.onload = () => callback();
+            document.head.appendChild(script2);
+        };
+        document.head.appendChild(script1);
+    }
+
+    // Professional PDF Download for Rider Deliveries
+    function downloadRiderDeliveriesPdf(e) {
+        if (e) e.preventDefault();
+
+        if (window.Notify) {
+            Notify.toast('Preparing delivery PDF report...', 'info');
+        }
+
+        ensureJsPdfLoaded(() => {
+            fetch(`http://localhost:8080/api/orders/history?username=${encodeURIComponent(username)}`)
+                .then(r => r.json())
+                .then(fetchedOrders => {
+                    generateRiderPdfDoc(Array.isArray(fetchedOrders) ? fetchedOrders : rawMineOrders);
+                })
+                .catch(err => {
+                    console.warn('History fetch fallback to rawMineOrders:', err);
+                    generateRiderPdfDoc(rawMineOrders || []);
+                });
+        });
+    }
+
+    function generateRiderPdfDoc(orders) {
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header Banner
+            doc.setFillColor(249, 115, 22); // orange-500
+            doc.rect(0, 0, 210, 36, 'F');
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont('helvetica', 'bold');
+            doc.text('CRAVEBITE RIDER LOGISTICS', 14, 18);
+
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Official Delivery Manifest & Trip Report • Rider: @${username}`, 14, 28);
+            doc.text(`Generated: ${new Date().toLocaleString()}`, 135, 28);
+
+            // Summary KPIs
+            const delivered = (orders || []).filter(o => (o.orderStatus || o.status) === 'DELIVERED');
+            const totalDeliveredValue = delivered.reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0);
+            const riderEarningsEstimate = delivered.length * 350.0; // standard delivery charge per trip
+
+            doc.setTextColor(30, 41, 59);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Delivery Performance Summary', 14, 46);
+
+            doc.setFontSize(9.5);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Total Assigned Orders: ${(orders || []).length}`, 14, 53);
+            doc.text(`Successfully Delivered: ${delivered.length}`, 75, 53);
+            doc.text(`Delivery Earnings: Rs. ${riderEarningsEstimate.toFixed(2)}`, 135, 53);
+
+            // Table rows
+            const rows = (orders || []).map(o => {
+                const dateStr = (o.orderDate || o.createdAt) 
+                    ? new Date(o.orderDate || o.createdAt).toLocaleDateString() 
+                    : new Date().toLocaleDateString();
+                const addressStr = (o.deliveryAddress || 'Standard Address').replace(/\[GPS:[^\]]*\]/g, '').trim();
+                return [
+                    `#${o.id}`,
+                    o.restaurantName || 'Kitchen Partner',
+                    o.customerName || 'Customer',
+                    addressStr.substring(0, 34),
+                    `Rs. ${(Number(o.totalAmount) || 0).toFixed(2)}`,
+                    o.orderStatus || o.status || 'ASSIGNED',
+                    dateStr
+                ];
+            });
+
+            const tableConfig = {
+                startY: 60,
+                head: [['Order #', 'Kitchen / Restaurant', 'Customer', 'Destination Address', 'Order Total', 'Status', 'Date']],
+                body: rows.length ? rows : [['-', 'No delivery records found', '-', '-', '-', '-', '-']],
+                theme: 'striped',
+                headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: 'bold' },
+                styles: { fontSize: 8, cellPadding: 3.2 }
+            };
+
+            if (typeof doc.autoTable === 'function') {
+                doc.autoTable(tableConfig);
+            } else if (typeof window.jspdf?.autoTable === 'function') {
+                window.jspdf.autoTable(doc, tableConfig);
+            } else if (typeof window.autoTable === 'function') {
+                window.autoTable(doc, tableConfig);
+            }
+
+            doc.save(`CraveBite_Rider_Deliveries_${username}.pdf`);
+
+            if (window.Notify) {
+                Notify.toast('PDF report downloaded successfully! 📄', 'success');
+            }
+        } catch (err) {
+            console.error('PDF generation error:', err);
+            if (window.Notify) {
+                Notify.error('PDF Error', 'Failed to generate PDF report: ' + (err.message || 'Unknown error'));
+            } else {
+                alert('Failed to generate PDF report');
+            }
+        }
+    }
+
     function loadRiderInquiries() {
         const container = document.getElementById('rider-inquiries-container');
         if (!container) return;
@@ -519,98 +797,61 @@
         fetch(`http://localhost:8080/api/contact/inbox?username=${encodeURIComponent(username)}`)
             .then(res => res.json())
             .then(data => {
-                const list = data.messages || [];
-                if (!list.length) {
-                    container.innerHTML = `
-                        <div class="py-8 text-center text-gray-400">
-                            <span class="text-3xl block mb-1">📬</span>
-                            <p class="font-bold text-gray-600 text-sm">No delivery inquiries yet</p>
-                            <p class="text-xs text-gray-400">Customer messages addressed to you will appear here.</p>
-                        </div>
-                    `;
+                if (!data || !data.length) {
+                    container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">No inquiries from customers at this time.</p>`;
                     return;
                 }
-
-                container.innerHTML = list.map(m => {
-                    const isReplied = m.status === 'REPLIED';
-                    return `
-                        <div class="bg-gray-50 p-5 rounded-2xl border ${isReplied ? 'border-gray-200' : 'border-purple-200 ring-2 ring-purple-100'} space-y-3">
-                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs font-bold text-gray-400">#MSG-${m.id}</span>
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black ${isReplied ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${m.status}</span>
-                                        <h4 class="font-black text-gray-900 text-sm">${m.subject}</h4>
-                                    </div>
-                                    <p class="text-xs text-gray-500 mt-1">From: <strong class="text-gray-800">${m.customerName}</strong> (${m.customerEmail} ${m.customerPhone ? '| ' + m.customerPhone : ''})</p>
-                                </div>
-                                <span class="text-[11px] text-gray-400 font-medium">${m.createdAt ? new Date(m.createdAt).toLocaleString() : ''}</span>
-                            </div>
-
-                            <div class="bg-white p-3 rounded-xl border border-gray-100">
-                                <p class="text-xs text-gray-700 font-medium leading-relaxed">${m.message}</p>
-                            </div>
-
-                            ${isReplied ? `
-                                <div class="bg-green-50 p-3 rounded-xl border border-green-200 text-xs">
-                                    <div class="flex justify-between items-center mb-1">
-                                        <span class="font-bold text-green-800">💬 Your Reply (${m.repliedByName})</span>
-                                        <span class="text-[10px] text-gray-400">${m.repliedAt ? new Date(m.repliedAt).toLocaleString() : ''}</span>
-                                    </div>
-                                    <p class="text-gray-800 font-medium">${m.reply}</p>
-                                </div>
-                            ` : `
-                                <div class="space-y-2 pt-1">
-                                    <textarea id="reply-text-${m.id}" rows="2" placeholder="Write your reply to ${m.customerName}..." class="w-full p-2.5 bg-white border border-gray-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-orange-500 outline-none"></textarea>
-                                    <div class="flex justify-end">
-                                        <button onclick="submitRiderReply(${m.id})" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition shadow shadow-orange-500/20">
-                                            Send Reply to Customer
-                                        </button>
-                                    </div>
-                                </div>
-                            `}
+                container.innerHTML = data.map(inq => `
+                    <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-gray-800">From: ${inq.name} (${inq.email})</span>
+                            <span class="text-gray-400">${new Date(inq.createdAt).toLocaleString()}</span>
                         </div>
-                    `;
-                }).join('');
+                        <p class="text-xs text-gray-600 bg-white p-3 rounded-xl border border-gray-100">${inq.message}</p>
+                        ${inq.reply ? `
+                            <div class="bg-orange-50/70 p-3 rounded-xl border border-orange-100 text-xs">
+                                <span class="font-bold text-orange-800">Your Reply:</span>
+                                <p class="text-gray-700 mt-0.5">${inq.reply}</p>
+                            </div>
+                        ` : `
+                            <form onsubmit="handleReplyInquiry(event, ${inq.id})" class="flex gap-2 mt-2">
+                                <input type="text" placeholder="Type your reply to customer..." required class="flex-1 text-xs px-3 py-2 bg-white border border-gray-200 rounded-xl outline-none focus:border-orange-500">
+                                <button type="submit" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl transition">Send Reply</button>
+                            </form>
+                        `}
+                    </div>
+                `).join('');
             })
-            .catch(err => {
-                console.error(err);
-                container.innerHTML = '<p class="text-xs text-red-500 text-center">Failed to load inquiries.</p>';
+            .catch(() => {
+                container.innerHTML = `<p class="text-xs text-red-400 text-center py-4">Failed to load inquiries.</p>`;
             });
     }
 
-    function submitRiderReply(id) {
-        const textElem = document.getElementById(`reply-text-${id}`);
-        const replyText = textElem ? textElem.value.trim() : '';
-        if (!replyText) {
-            alert('Please write a reply before submitting.');
-            return;
-        }
-
-        const params = new URLSearchParams();
-        params.append('username', username);
-        params.append('replyMessage', replyText);
+    function handleReplyInquiry(e, id) {
+        e.preventDefault();
+        const input = e.target.querySelector('input');
+        const reply = input.value.trim();
+        if (!reply) return;
 
         fetch(`http://localhost:8080/api/contact/reply/${id}`, {
             method: 'POST',
-            body: params
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `username=${encodeURIComponent(username)}&reply=${encodeURIComponent(reply)}`
         })
-        .then(res => res.json())
+        .then(r => r.json())
         .then(data => {
             if (data.success) {
+                alert('Reply sent!');
                 loadRiderInquiries();
             } else {
-                alert(data.error || 'Failed to submit reply');
+                alert(data.error || 'Failed to send reply');
             }
-        })
-        .catch(err => {
-            console.error(err);
-            alert('Error communicating with backend');
         });
     }
 
-    loadOrders();
+    // Auto load
     loadVehicleDetails();
+    loadOrders();
     loadRiderInquiries();
     setInterval(loadOrders, 10000);
 </script>
