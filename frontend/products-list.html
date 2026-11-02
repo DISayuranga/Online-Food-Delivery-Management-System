@@ -471,7 +471,6 @@
                             <div class="flex justify-between items-start mb-2">
                                 <h3 class="text-lg font-black text-gray-900 leading-tight group-hover:text-orange-500 transition-colors">${item.name}</h3>
                                 <div class="text-right shrink-0 ml-2">
-                                    <span class="text-[11px] text-gray-400 block line-through">Base: Rs. ${basePrice}</span>
                                     <span class="text-lg font-black text-orange-600">Rs. ${finalPrice}</span>
                                 </div>
                             </div>
@@ -490,8 +489,14 @@
     function addToCart(foodItemId, quantity) {
         const username = localStorage.getItem('username');
         if (!username) {
-            alert('Please login first!');
-            window.location.href = '/login.html';
+            if (window.Notify) {
+                Notify.warning('Login Required', 'Please log in to add items to your cart.').then(() => {
+                    window.location.href = '/login.html';
+                });
+            } else {
+                alert('Please login first!');
+                window.location.href = '/login.html';
+            }
             return;
         }
 
@@ -499,14 +504,23 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert('Added to cart!');
+                if (window.Notify) {
+                    Notify.toast('Added to cart! 🛒', 'success');
+                } else {
+                    alert('Added to cart!');
+                }
             } else {
-                alert(data.error || 'Failed to add to cart');
+                if (window.Notify) {
+                    Notify.error('Error', data.error || 'Failed to add to cart');
+                } else {
+                    alert(data.error || 'Failed to add to cart');
+                }
             }
         });
     }
 
 </script>
+<script src="/js/notify.js"></script>
 <script src="/js/navbar.js"></script>
 </body>
 </html>
