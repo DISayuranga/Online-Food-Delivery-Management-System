@@ -14,32 +14,49 @@
 <nav id="cravebite-nav"></nav>
 
 <main class="flex-grow max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 pb-6 border-b border-gray-200">
-        <div>
-            <div class="flex items-center gap-2">
-                <span class="bg-amber-100 text-amber-800 font-extrabold px-3 py-1 rounded-full text-xs uppercase tracking-wider">Kitchen Console</span>
-                <span id="owner-name" class="text-xs text-gray-500 font-medium"></span>
+    <!-- Header Banner with Background Image -->
+    <div class="relative overflow-hidden rounded-3xl mb-8 shadow-xl bg-gray-950 text-white border border-gray-800">
+        <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1920&q=80" 
+             alt="Kitchen Console" 
+             class="absolute inset-0 w-full h-full object-cover opacity-20">
+        <div class="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-900/90 to-transparent"></div>
+
+        <div class="relative z-10 p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-amber-500 text-white font-black px-3.5 py-1 rounded-full text-xs uppercase tracking-wider shadow">Kitchen Operations</span>
+                    <span id="owner-name" class="text-xs text-amber-200 font-mono bg-white/10 px-3 py-1 rounded-full backdrop-blur"></span>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight">Live Restaurant Orders</h1>
+                <p class="text-gray-300 text-sm mt-1 max-w-2xl">
+                    Review incoming customer orders, inspect delivery destination coordinates, cook items, and dispatch directly to delivery riders.
+                </p>
             </div>
-            <h1 class="text-3xl md:text-4xl font-black text-gray-900 tracking-tight mt-1">Live Restaurant Orders</h1>
-            <p class="text-gray-500 text-sm">Review customer orders, inspect delivery locations, prepare dishes, and dispatch to riders.</p>
-        </div>
-        <div class="flex gap-3">
-            <button onclick="loadOrders()" class="bg-white hover:bg-gray-100 text-gray-700 px-4 py-2.5 rounded-2xl border border-gray-200 font-bold transition flex items-center gap-2 text-sm">
-                <span>🔄</span> Refresh
-            </button>
-            <a href="/product-add.html" class="bg-gray-900 hover:bg-orange-500 text-white px-5 py-2.5 rounded-2xl font-bold transition text-sm flex items-center gap-2 shadow">
-                <span>+</span> Add Dish
-            </a>
+            <div class="flex flex-wrap items-center gap-3">
+                <button onclick="loadOrders()" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-2xl font-bold transition flex items-center gap-2 text-sm backdrop-blur border border-white/20 shadow">
+                    <span>🔄</span> Refresh
+                </button>
+                <a href="/product-add.html" class="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-2xl font-bold transition text-sm flex items-center gap-2 shadow-lg shadow-orange-500/30">
+                    <span>➕</span> Add Dish
+                </a>
+            </div>
         </div>
     </div>
 
-    <!-- Filter Buttons -->
-    <div class="flex space-x-2 mb-6 overflow-x-auto pb-2">
-        <button onclick="filterStatus('ALL')" id="filter-ALL" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-orange-500 text-white shadow-sm">All Orders</button>
-        <button onclick="filterStatus('PLACED')" id="filter-PLACED" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200">New Orders</button>
-        <button onclick="filterStatus('PREPARING')" id="filter-PREPARING" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200">Preparing in Kitchen</button>
-        <button onclick="filterStatus('OUT_FOR_DELIVERY')" id="filter-OUT_FOR_DELIVERY" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200">Out for Delivery</button>
+    <!-- Filter Buttons & Live Search Toolbar -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div class="flex space-x-2 overflow-x-auto pb-1 w-full sm:w-auto">
+            <button onclick="filterStatus('ALL')" id="filter-ALL" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-orange-500 text-white shadow-sm shrink-0">All Orders</button>
+            <button onclick="filterStatus('PLACED')" id="filter-PLACED" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 shrink-0">New Orders</button>
+            <button onclick="filterStatus('PREPARING')" id="filter-PREPARING" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 shrink-0">Preparing in Kitchen</button>
+            <button onclick="filterStatus('OUT_FOR_DELIVERY')" id="filter-OUT_FOR_DELIVERY" class="status-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 shrink-0">Out for Delivery</button>
+        </div>
+        
+        <!-- Live Search Bar -->
+        <div class="w-full sm:w-72 relative">
+            <input type="text" id="restaurant-search" oninput="handleSearch(this.value)" placeholder="🔍 Search Order #ID, customer, dish..." class="w-full bg-white border border-gray-200 rounded-2xl px-4 py-2.5 text-xs font-medium focus:ring-2 focus:ring-orange-500 outline-none shadow-sm transition">
+            <span id="search-clear-btn" onclick="clearSearch()" class="hidden absolute right-3 top-2.5 text-xs text-gray-400 hover:text-gray-700 cursor-pointer font-bold">✕</span>
+        </div>
     </div>
 
     <!-- Orders Container -->
@@ -75,6 +92,7 @@
     </div>
 </footer>
 
+<script src="/js/notify.js"></script>
 <script src="/js/navbar.js"></script>
 <script>
     const username = localStorage.getItem('username');
@@ -89,15 +107,32 @@
 
     let cachedOrders = [];
     let currentFilter = 'ALL';
+    let currentSearchQuery = '';
+
+    function handleSearch(val) {
+        currentSearchQuery = (val || '').toLowerCase().trim();
+        const clearBtn = document.getElementById('search-clear-btn');
+        if (currentSearchQuery) {
+            clearBtn.classList.remove('hidden');
+        } else {
+            clearBtn.classList.add('hidden');
+        }
+        renderOrders();
+    }
+
+    function clearSearch() {
+        document.getElementById('restaurant-search').value = '';
+        handleSearch('');
+    }
 
     function filterStatus(status) {
         currentFilter = status;
         document.querySelectorAll('.status-btn').forEach(b => {
-            b.className = 'status-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200';
+            b.className = 'status-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 shrink-0';
         });
         const activeBtn = document.getElementById(`filter-${status}`);
         if (activeBtn) {
-            activeBtn.className = 'status-btn px-4 py-2 rounded-xl text-xs font-bold bg-orange-500 text-white shadow-sm';
+            activeBtn.className = 'status-btn px-4 py-2 rounded-xl text-xs font-bold bg-orange-500 text-white shadow-sm shrink-0';
         }
         renderOrders();
     }
@@ -130,14 +165,27 @@
 
     function renderOrders() {
         const container = document.getElementById('orders-container');
-        const orders = currentFilter === 'ALL' ? cachedOrders : cachedOrders.filter(o => o.orderStatus === currentFilter);
+        let orders = currentFilter === 'ALL' ? cachedOrders : cachedOrders.filter(o => o.orderStatus === currentFilter);
+
+        if (currentSearchQuery) {
+            orders = orders.filter(o => {
+                const q = currentSearchQuery;
+                const idMatch = String(o.id || '').toLowerCase().includes(q);
+                const custMatch = (o.customerName || '').toLowerCase().includes(q);
+                const phoneMatch = (o.customerPhone || '').toLowerCase().includes(q);
+                const addrMatch = (o.deliveryAddress || '').toLowerCase().includes(q);
+                const itemsMatch = (o.itemsSummary || '').toLowerCase().includes(q);
+                const dishMatch = o.items ? o.items.some(i => (i.name || '').toLowerCase().includes(q)) : false;
+                return idMatch || custMatch || phoneMatch || addrMatch || itemsMatch || dishMatch;
+            });
+        }
 
         if (!orders.length) {
             container.innerHTML = `
                 <div class="bg-white p-12 rounded-3xl shadow-sm border border-gray-100 text-center">
-                    <span class="text-5xl block mb-4">📭</span>
-                    <h3 class="text-xl font-bold text-gray-900">No matching orders right now</h3>
-                    <p class="text-gray-500 text-sm mt-1">New incoming customer orders will appear here automatically.</p>
+                    <span class="text-5xl block mb-4">${currentSearchQuery ? '🔍' : '📭'}</span>
+                    <h3 class="text-xl font-bold text-gray-900">${currentSearchQuery ? 'No orders match your search' : 'No matching orders right now'}</h3>
+                    <p class="text-gray-500 text-sm mt-1">${currentSearchQuery ? 'Try searching by Order #ID, customer name, dish, or address.' : 'New incoming customer orders will appear here automatically.'}</p>
                 </div>
             `;
             return;
@@ -145,39 +193,80 @@
 
         container.innerHTML = orders.map(o => {
             let statusBadge = '';
-            let actionButtons = '';
+            let stage1Html = '';
+            let stage2Html = '';
+            let stage3Html = '';
+            let cancelBtn = '';
 
             if (o.orderStatus === 'PLACED') {
                 statusBadge = '<span class="px-3 py-1 text-xs font-black rounded-full bg-blue-100 text-blue-700 uppercase tracking-wider">New Order</span>';
-                actionButtons = `
-                    <button onclick="advance(${o.id}, 'PREPARING')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition shadow-md shadow-amber-500/20 flex items-center gap-1">
-                        <span>👨‍🍳</span> Accept & Start Preparing
+                stage1Html = `
+                    <button onclick="advance(${o.id}, 'PREPARING')" class="flex-1 w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-2.5 px-3 rounded-xl text-xs transition shadow-md shadow-orange-500/20 flex items-center justify-center gap-1.5 animate-pulse">
+                        <span>1️⃣</span> Accept & Start Cooking ➔
                     </button>
-                    <button onclick="advance(${o.id}, 'CANCELLED')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 px-4 rounded-xl text-sm transition border border-red-200">
+                `;
+                stage2Html = `
+                    <div class="flex-1 w-full bg-gray-100 text-gray-400 border border-gray-200 font-semibold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-not-allowed opacity-60">
+                        <span>🔒</span> 2. Ready for Rider
+                    </div>
+                `;
+                stage3Html = `
+                    <div class="flex-1 w-full bg-gray-100 text-gray-400 border border-gray-200 font-semibold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-not-allowed opacity-60">
+                        <span>🔒</span> 3. Delivery
+                    </div>
+                `;
+                cancelBtn = `
+                    <button onclick="advance(${o.id}, 'CANCELLED')" class="text-xs text-red-500 hover:text-red-700 font-bold underline px-2 py-1">
                         Cancel Order
                     </button>
                 `;
             } else if (o.orderStatus === 'PREPARING') {
                 statusBadge = '<span class="px-3 py-1 text-xs font-black rounded-full bg-amber-100 text-amber-700 uppercase tracking-wider">In Kitchen</span>';
-                actionButtons = `
-                    <button onclick="advance(${o.id}, 'OUT_FOR_DELIVERY')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition shadow-md shadow-green-600/20 flex items-center gap-1">
-                        <span>🛵</span> Ready for Delivery • Handover to Rider
+                stage1Html = `
+                    <div class="flex-1 w-full bg-green-50 text-green-700 border border-green-200 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-not-allowed">
+                        <span>✓</span> 1. Accepted
+                    </div>
+                `;
+                stage2Html = `
+                    <button onclick="advance(${o.id}, 'OUT_FOR_DELIVERY')" class="flex-1 w-full bg-green-600 hover:bg-green-700 text-white font-black py-2.5 px-3 rounded-xl text-xs transition shadow-md shadow-green-600/20 flex items-center justify-center gap-1.5 animate-pulse">
+                        <span>2️⃣</span> Food Ready • Handover to Rider ➔
                     </button>
-                    <button onclick="advance(${o.id}, 'CANCELLED')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 px-4 rounded-xl text-sm transition border border-red-200">
+                `;
+                stage3Html = `
+                    <div class="flex-1 w-full bg-gray-100 text-gray-400 border border-gray-200 font-semibold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-not-allowed opacity-60">
+                        <span>🔒</span> 3. Delivery
+                    </div>
+                `;
+                cancelBtn = `
+                    <button onclick="advance(${o.id}, 'CANCELLED')" class="text-xs text-red-500 hover:text-red-700 font-bold underline px-2 py-1">
                         Cancel Order
                     </button>
                 `;
             } else if (o.orderStatus === 'OUT_FOR_DELIVERY') {
                 statusBadge = '<span class="px-3 py-1 text-xs font-black rounded-full bg-purple-100 text-purple-700 uppercase tracking-wider">Dispatched</span>';
-                actionButtons = `
-                    <span class="text-xs text-gray-500 font-bold bg-gray-100 px-3 py-2 rounded-xl">
-                        Rider: ${o.riderName || 'Awaiting Pickup by Rider'}
-                    </span>
+                stage1Html = `
+                    <div class="flex-1 w-full bg-green-50 text-green-700 border border-green-200 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-not-allowed">
+                        <span>✓</span> 1. Accepted
+                    </div>
+                `;
+                stage2Html = `
+                    <div class="flex-1 w-full bg-green-50 text-green-700 border border-green-200 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 cursor-not-allowed">
+                        <span>✓</span> 2. Cooked & Handed Over
+                    </div>
+                `;
+                stage3Html = `
+                    <div class="flex-1 w-full bg-purple-100 text-purple-800 border border-purple-200 font-black py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5">
+                        <span>🛵</span> 3. Rider: ${o.riderName || 'Awaiting Rider Pickup'}
+                    </div>
                 `;
             } else if (o.orderStatus === 'DELIVERED') {
                 statusBadge = '<span class="px-3 py-1 text-xs font-black rounded-full bg-green-100 text-green-700 uppercase tracking-wider">Delivered</span>';
+                stage1Html = `<div class="flex-1 w-full bg-green-50 text-green-700 border border-green-200 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1"><span>✓</span> 1. Accepted</div>`;
+                stage2Html = `<div class="flex-1 w-full bg-green-50 text-green-700 border border-green-200 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1"><span>✓</span> 2. Cooked</div>`;
+                stage3Html = `<div class="flex-1 w-full bg-green-100 text-green-800 border border-green-300 font-black py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1"><span>🏁</span> 3. Safely Delivered</div>`;
             } else if (o.orderStatus === 'CANCELLED') {
                 statusBadge = '<span class="px-3 py-1 text-xs font-black rounded-full bg-red-100 text-red-700 uppercase tracking-wider">Cancelled</span>';
+                stage1Html = `<div class="w-full bg-red-50 text-red-700 border border-red-200 font-bold py-2.5 px-3 rounded-xl text-xs text-center">Order was cancelled</div>`;
             }
 
             const formattedDate = o.orderDate ? new Date(o.orderDate).toLocaleString() : 'Just now';
@@ -260,9 +349,17 @@
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-gray-100">
-                        ${actionButtons}
+                    <!-- Step-by-Step Interactive Kitchen Pipeline Stepper -->
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <div class="flex items-center justify-between mb-2.5">
+                            <span class="text-[11px] font-black uppercase tracking-wider text-gray-500">Order Dispatch Workflow (Left to Right):</span>
+                            ${cancelBtn}
+                        </div>
+                        <div class="flex flex-col sm:flex-row items-center gap-2">
+                            ${stage1Html}
+                            ${stage2Html}
+                            ${stage3Html}
+                        </div>
                     </div>
                 </div>
             `;
