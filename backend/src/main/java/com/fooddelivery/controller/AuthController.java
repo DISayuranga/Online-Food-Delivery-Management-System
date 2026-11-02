@@ -16,6 +16,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.Optional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -66,6 +71,7 @@ public class AuthController {
             response.put("roleType", user.getRoleType());
             response.put("username", user.getUsername());
             response.put("fullName", user.getFullName());
+            response.put("profilePictureUrl", user.getProfilePictureUrl() != null ? user.getProfilePictureUrl() : "");
             return ResponseEntity.ok(response);
         }
         
@@ -88,7 +94,8 @@ public class AuthController {
                                              @RequestParam String email,
                                              @RequestParam(required = false, defaultValue = "CUSTOMER") String role,
                                              @RequestParam(required = false) String specificField,
-                                             @RequestParam(required = false) String phoneNumber) {
+                                             @RequestParam(required = false) String phoneNumber,
+                                             @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) {
         
         Map<String, Object> response = new HashMap<>();
         if (userRepository.findByUsername(username).isPresent()) {
@@ -98,7 +105,6 @@ public class AuthController {
         }
 
         // Public registration is strictly for Customers only.
-        // Admins can create Riders, Restaurant Owners, and other Admins from the Admin Panel.
         Customer customer = new Customer();
         customer.setDefaultDeliveryAddress(specificField != null ? specificField : "");
         customer.setPhoneNumber(phoneNumber != null ? phoneNumber : "");
@@ -106,6 +112,31 @@ public class AuthController {
         customer.setPassword(password);
         customer.setFullName(fullName);
         customer.setEmail(email);
+
+        if (profileImage != null && !profileImage.isEmpty()) {
+            try {
+                String originalFilename = profileImage.getOriginalFilename();
+                String ext = ".jpg";
+                if (originalFilename != null && originalFilename.contains(".")) {
+                    ext = originalFilename.substring(originalFilename.lastIndexOf("."));
+                }
+                String filename = "profile_" + System.currentTimeMillis() + ext;
+
+                File uploadDir1 = new File("uploads");
+                if (!uploadDir1.exists()) uploadDir1.mkdirs();
+                Path target1 = uploadDir1.toPath().resolve(filename);
+                Files.write(target1, profileImage.getBytes());
+
+                File uploadDir2 = new File("frontend/uploads").exists() ? new File("frontend/uploads") : new File("../frontend/uploads");
+                if (!uploadDir2.exists()) uploadDir2.mkdirs();
+                Path target2 = uploadDir2.toPath().resolve(filename);
+                Files.write(target2, profileImage.getBytes());
+
+                customer.setProfilePictureUrl("/uploads/" + filename);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         userRepository.save(customer);
         
