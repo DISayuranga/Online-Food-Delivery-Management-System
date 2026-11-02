@@ -171,6 +171,7 @@
     </div>
 </footer>
 
+<script src="/js/notify.js"></script>
 <script src="/js/navbar.js"></script>
 <script>
     let availableTargets = [];
@@ -240,6 +241,9 @@
             submitBtn.innerHTML = '<span>✉️</span> Send Message';
 
             if (data.success) {
+                if (window.Notify) {
+                    Notify.success('Message Sent! ✉️', data.message || "Thank you! Your inquiry has been delivered successfully.");
+                }
                 const alertBox = document.getElementById('form-alert');
                 document.getElementById('alert-text').innerText = data.message || "Thank you! Your message has been sent successfully.";
                 alertBox.classList.remove('hidden');
@@ -248,14 +252,16 @@
                 window.scrollTo({ top: alertBox.offsetTop - 100, behavior: 'smooth' });
                 loadMyMessages();
             } else {
-                alert(data.error || 'Failed to send message');
+                if (window.Notify) Notify.error('Sending Failed', data.error || 'Failed to send message');
+                else alert(data.error || 'Failed to send message');
             }
         })
         .catch(err => {
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<span>✉️</span> Send Message';
             console.error(err);
-            alert('Error connecting to backend server');
+            if (window.Notify) Notify.error('Connection Error', 'Error connecting to backend server');
+            else alert('Error connecting to backend server');
         });
     }
 
