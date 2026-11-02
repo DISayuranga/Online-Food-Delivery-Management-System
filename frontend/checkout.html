@@ -38,8 +38,8 @@
                     <span id="subtotal">Rs. 0</span>
                 </div>
                 <div class="flex justify-between text-sm mb-2">
-                    <span class="text-gray-600">Delivery</span>
-                    <span>Rs. 5.00</span>
+                    <span class="text-gray-600">Delivery Fee</span>
+                    <span class="font-bold text-orange-600" id="delivery-fee">+ Rs. 350.00</span>
                 </div>
                 <div class="flex justify-between text-lg font-bold mt-4">
                     <span>Total</span>
@@ -155,10 +155,11 @@
             `;
         });
 
-        document.getElementById('subtotal').innerText = `Rs. ${data.subTotal}`;
-        document.getElementById('total').innerText = `Rs. ${data.total}`;
+        document.getElementById('subtotal').innerText = `Rs. ${Number(data.subTotal || 0).toFixed(2)}`;
+        document.getElementById('delivery-fee').innerText = `+ Rs. ${Number(data.deliveryFee || 350).toFixed(2)}`;
+        document.getElementById('total').innerText = `Rs. ${Number(data.total || 0).toFixed(2)}`;
         document.getElementById('amount').value = data.total;
-        document.getElementById('pay-btn').innerText = `Pay Rs. ${data.total} Securely`;
+        document.getElementById('pay-btn').innerText = `Pay Rs. ${Number(data.total || 0).toFixed(2)} Securely`;
 
         // Populate Addresses
         const addressList = document.getElementById('address-list');
@@ -254,39 +255,76 @@
     document.getElementById('checkout-form').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const formData = new FormData(this);
+        const formEl = this;
+        const formData = new FormData(formEl);
         
         const timingChoice = document.querySelector('input[name="deliveryTiming"]:checked')?.value;
+        let scheduleNote = 'Instant Delivery (ASAP)';
         if (timingChoice === 'scheduled') {
             const dateVal = document.getElementById('schedule-date').value;
             const timeVal = document.getElementById('schedule-time').value;
             if (!dateVal || !timeVal) {
-                alert('Please select both delivery date and time for scheduled delivery.');
+                if (window.Notify) Notify.warning('Schedule Required', 'Please select both delivery date and time for scheduled delivery.');
+                else alert('Please select both delivery date and time for scheduled delivery.');
                 return;
             }
-            formData.append('scheduledTime', `Scheduled: ${dateVal} at ${timeVal}`);
+            scheduleNote = `Scheduled: ${dateVal} at ${timeVal}`;
+            formData.append('scheduledTime', scheduleNote);
         } else {
-            formData.append('scheduledTime', 'Instant Delivery (ASAP)');
+            formData.append('scheduledTime', scheduleNote);
         }
+
+        const totalPayable = document.getElementById('total').innerText;
         
-        fetch(`http://localhost:8080/api/payment/process?username=${username}`, {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                window.location.href = `/payment-success.html?message=${encodeURIComponent(data.message)}&details=${encodeURIComponent(data.details)}`;
-            } else {
-                alert(data.error || 'Payment failed');
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert('Server error processing payment');
-        });
+        const proceedWithPayment = () => {
+            const payBtn = document.getElementById('pay-btn');
+            payBtn.disabled = true;
+            payBtn.innerText = 'Processing Payment...';
+
+            fetch(`http://localhost:8080/api/payment/process?username=${username}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (window.Notify) {
+                        window.Notify.toast('Payment Successful! Redirecting...', 'success');
+                    }
+                    setTimeout(() => {
+                        window.location.href = `/payment-success.html?message=${encodeURIComponent(data.message)}&details=${encodeURIComponent(data.details)}`;
+                    }, 500);
+                } else {
+                    payBtn.disabled = false;
+                    payBtn.innerText = `Pay ${totalPayable} Securely`;
+                    if (window.Notify) Notify.error('Payment Failed', data.error || 'Payment could not be processed.');
+                    else alert(data.error || 'Payment failed');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                payBtn.disabled = false;
+                payBtn.innerText = `Pay ${totalPayable} Securely`;
+                if (window.Notify) Notify.error('Connection Error', 'Could not communicate with the payment server.');
+                else alert('Server error processing payment');
+            });
+        };
+
+        if (window.Notify && window.Notify.confirm) {
+            window.Notify.confirm(
+                'Confirm Order Payment',
+                `You are about to authorize payment of ${totalPayable} (including standard delivery fee). Proceed with order placement?`,
+                'Confirm & Pay Now',
+                'Cancel'
+            ).then(res => {
+                if (res.isConfirmed) proceedWithPayment();
+            });
+        } else {
+            proceedWithPayment();
+        }
     });
 </script>
+<script src="/js/notify.js"></script>
 <script src="/js/navbar.js"></script>
 </body>
 </html>

@@ -82,31 +82,41 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
             const role = data.roleType || data.role || 'CUSTOMER';
             localStorage.setItem('role', role);
             if (data.fullName) localStorage.setItem('fullName', data.fullName);
+            if (data.profilePictureUrl) localStorage.setItem('profilePictureUrl', data.profilePictureUrl);
+            else localStorage.removeItem('profilePictureUrl');
 
-            // Role-based smart redirect
-            if (role === 'ADMIN') {
-                window.location.href = '/admin-dashboard.html';
-            } else if (role === 'RESTAURANT_OWNER') {
-                window.location.href = '/restaurant-orders.html';
-            } else if (role === 'RIDER') {
-                window.location.href = '/rider-orders.html';
-            } else {
-                window.location.href = '/products-list.html';
+            if (window.Notify) {
+                Notify.toast('Welcome back! Logging in...', 'success');
             }
+            // Role-based smart redirect
+            setTimeout(() => {
+                if (role === 'ADMIN') {
+                    window.location.href = '/admin-dashboard.html';
+                } else if (role === 'RESTAURANT_OWNER') {
+                    window.location.href = '/restaurant-orders.html';
+                } else if (role === 'RIDER') {
+                    window.location.href = '/rider-orders.html';
+                } else {
+                    window.location.href = '/index.html';
+                }
+            }, 600);
         } else {
             // Show error message box
             document.getElementById('error-message').classList.remove('hidden');
             document.getElementById('error-text').innerText = data.error;
+            if (window.Notify) Notify.error('Login Failed', data.error || 'Invalid credentials');
         }
     })
     .catch(err => {
         console.error("Login failed:", err);
         document.getElementById('error-message').classList.remove('hidden');
         document.getElementById('error-text').innerText = 'Server error. Is the Java backend running?';
+        if (window.Notify) Notify.error('Connection Error', 'Server is not responding. Please check backend.');
     });
 });
 </script>
 
+<script src="/js/notify.js"></script>
 <script src="/js/navbar.js"></script>
 </body>
 </html>
