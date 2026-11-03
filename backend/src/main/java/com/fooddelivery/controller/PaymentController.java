@@ -159,6 +159,8 @@ public class PaymentController {
 
         List<CartItem> cartItems = cartItemRepository.findByCustomer(customer);
         double subTotal = cartItems.stream().mapToDouble(CartItem::getTotalPrice).sum();
+        double deliveryFee = subTotal > 0 ? 350.0 : 0.0;
+        double total = subTotal > 0 ? (subTotal + deliveryFee) : 0.0;
         
         List<Map<String, Object>> formattedCartItems = cartItems.stream().map(ci -> {
             Map<String, Object> map = new HashMap<>();
@@ -184,7 +186,8 @@ public class PaymentController {
         Map<String, Object> response = new HashMap<>();
         response.put("cartItems", formattedCartItems);
         response.put("subTotal", subTotal);
-        response.put("total", subTotal > 0 ? subTotal : 0.0);
+        response.put("deliveryFee", deliveryFee);
+        response.put("total", total);
         response.put("paymentMethods", methods);
         response.put("addresses", addresses);
         
@@ -244,7 +247,7 @@ public class PaymentController {
             OrderRecord order = new OrderRecord();
             order.setCustomer(customer);
             order.setRestaurant(restaurant);
-            order.setTotalAmount(totalForRestaurant);
+            order.setTotalAmount(totalForRestaurant + 350.0);
             order.setItemsSummary(itemsSummary);
             order.setItemsJson(itemsJson);
             order.setOrderStatus("PLACED");

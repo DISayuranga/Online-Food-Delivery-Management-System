@@ -37,8 +37,14 @@ public class ProductController {
 
     @GetMapping("/list")
     public ResponseEntity<?> getProductsApi(@RequestParam(required = false) String category,
-                                            @RequestParam(required = false) Long restaurantId) {
+                                            @RequestParam(required = false) Long restaurantId,
+                                            @RequestParam(required = false) String ownerUsername) {
         List<FoodItem> items = foodItemRepository.findAll();
+        if (ownerUsername != null && !ownerUsername.trim().isEmpty()) {
+            items = items.stream()
+                    .filter(item -> item.getOwner() != null && item.getOwner().getUsername().equalsIgnoreCase(ownerUsername.trim()))
+                    .collect(Collectors.toList());
+        }
         if (restaurantId != null) {
             items = items.stream()
                     .filter(item -> item.getOwnerId() != null && item.getOwnerId().equals(restaurantId))
@@ -88,8 +94,7 @@ public class ProductController {
 
                 File[] targetDirs = new File[] {
                     new File("uploads"),
-                    new File("../frontend/uploads"),
-                    new File("frontend/uploads"),
+                    new File("frontend/uploads").exists() ? new File("frontend/uploads") : new File("../frontend/uploads"),
                     new File("target/classes/static/uploads")
                 };
                 for (File dir : targetDirs) {
@@ -178,8 +183,7 @@ public class ProductController {
 
                 File[] targetDirs = new File[] {
                     new File("uploads"),
-                    new File("../frontend/uploads"),
-                    new File("frontend/uploads"),
+                    new File("frontend/uploads").exists() ? new File("frontend/uploads") : new File("../frontend/uploads"),
                     new File("target/classes/static/uploads")
                 };
                 for (File dir : targetDirs) {

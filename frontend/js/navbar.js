@@ -3,6 +3,11 @@
     function renderNavbar() {
         const username = localStorage.getItem('username');
         const role = (localStorage.getItem('role') || '').toUpperCase();
+        const profilePic = localStorage.getItem('profilePictureUrl');
+        const resolveImg = u => !u ? '' : (u.startsWith('/') && window.location.port !== '8080' ? 'http://localhost:8080' + u : u);
+        const avatarHtml = profilePic 
+            ? `<a href="/profile.html" class="inline-block shrink-0" title="View Profile"><img src="${resolveImg(profilePic)}" alt="Profile" class="w-8 h-8 rounded-full object-cover border-2 border-orange-500 shadow-xs hover:scale-105 transition" onerror="this.remove()"></a>` 
+            : '';
 
         const navElement = document.getElementById('cravebite-nav') || document.querySelector('nav');
         if (!navElement) return;
@@ -14,6 +19,7 @@
             // Guest Navigation
             leftLinks = `
                 <a href="/index.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Home</a>
+                <a href="/services.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Our Services</a>
                 <a href="/about.html" class="hover:text-orange-500 font-bold text-gray-700 transition">About Us</a>
                 <a href="/products-list.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Food</a>
                 <a href="/contact.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Contact Us</a>
@@ -24,9 +30,10 @@
             `;
         } else if (role === 'CUSTOMER') {
             // Customer Side Navigation (Exact Order Requested):
-            // 1. Home, 2. About us, 3. Food, 4. My Cart, 5. My Orders, 6. Contact us, 7. Profile & Settings
+            // 1. Home, 2. Our Services, 3. About us, 4. Food, 5. My Cart, 6. My Orders, 7. Contact us, 8. Profile & Settings
             leftLinks = `
                 <a href="/index.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Home</a>
+                <a href="/services.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Our Services</a>
                 <a href="/about.html" class="hover:text-orange-500 font-bold text-gray-700 transition">About Us</a>
                 <a href="/products-list.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Food</a>
                 <a href="/cart-view.html" class="hover:text-orange-500 font-bold text-gray-700 transition">My Cart</a>
@@ -36,7 +43,8 @@
             `;
             rightLinks = `
                 <a href="/cart-view.html" class="bg-orange-100 text-orange-600 px-4 py-2 rounded-full font-bold hover:bg-orange-200 transition text-sm flex items-center gap-1 shadow-sm">🛒 Cart</a>
-                <span class="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full font-bold">@${username}</span>
+                ${avatarHtml}
+                <span class="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full font-bold">${username}</span>
                 <button onclick="craveBiteLogout()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-xs font-bold hover:bg-red-50 hover:text-red-500 transition">Log out</button>
             `;
         } else if (role === 'RESTAURANT_OWNER') {
@@ -50,22 +58,23 @@
                 <a href="/restaurant-sales.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Sales & Reports</a>
             `;
             rightLinks = `
+                ${avatarHtml}
                 <a href="/profile.html" class="text-gray-700 hover:text-orange-500 font-bold text-sm transition">👤 Profile</a>
                 <span class="text-xs bg-amber-100 text-amber-800 px-3 py-1.5 rounded-full font-bold">Restaurant</span>
                 <button onclick="craveBiteLogout()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-xs font-bold hover:bg-red-50 hover:text-red-500 transition">Log out</button>
             `;
         } else if (role === 'ADMIN') {
-            // Admin Side Navigation (Exact Order Requested):
-            // 1. Dashboard & Analytics, 2. Manage Customers, 3. Manage Restaurants, 4. Manage Riders, 5. Manage Orders & Deliveries
+            // Admin Navigation: Short, concise, non-repetitive platform tools
             leftLinks = `
-                <a href="/admin-dashboard.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Dashboard & Analytics</a>
-                <a href="/admin-dashboard.html?tab=customers" class="hover:text-orange-500 font-bold text-gray-700 transition">Manage Customers</a>
-                <a href="/admin-dashboard.html?tab=restaurants" class="hover:text-orange-500 font-bold text-gray-700 transition">Manage Restaurants</a>
-                <a href="/admin-dashboard.html?tab=riders" class="hover:text-orange-500 font-bold text-gray-700 transition">Manage Riders</a>
-                <a href="/admin-dashboard.html?tab=orders" class="hover:text-orange-500 font-bold text-gray-700 transition">Manage Orders & Deliveries</a>
+                <a href="/admin-dashboard.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Dashboard</a>
+                <a href="/products-list.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Food Menu</a>
+                <a href="/services.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Our Services</a>
+                <a href="/admin-dashboard.html?tab=inquiries" class="hover:text-orange-500 font-bold text-gray-700 transition">Inquiries</a>
+                <a href="/contact.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Contact Support</a>
             `;
             rightLinks = `
                 <span class="bg-purple-100 text-purple-700 px-3 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider">Super Admin</span>
+                ${avatarHtml}
                 <a href="/profile.html" class="text-gray-700 hover:text-orange-500 font-bold text-sm transition">Profile</a>
                 <button onclick="craveBiteLogout()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-xs font-bold hover:bg-red-50 hover:text-red-500 transition">Log out</button>
             `;
@@ -77,7 +86,7 @@
                 <a href="/about.html" class="hover:text-orange-500 font-bold text-gray-700 transition">About Us</a>
             `;
             rightLinks = `
-                <a href="http://localhost:8080/api/orders/reports/rider-deliveries?username=${encodeURIComponent(username)}" target="_blank" class="bg-orange-500 text-white px-4 py-2 rounded-full text-xs font-bold hover:bg-orange-600 transition shadow">📄 Download Report</a>
+                ${avatarHtml}
                 <a href="/profile.html" class="text-gray-700 hover:text-orange-500 font-bold text-sm transition">👤 Rider Profile</a>
                 <button onclick="craveBiteLogout()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-xs font-bold hover:bg-red-50 hover:text-red-500 transition">Log out</button>
             `;
@@ -90,7 +99,7 @@
                 <a href="/contact.html" class="hover:text-orange-500 font-bold text-gray-700 transition">Contact Us</a>
             `;
             rightLinks = `
-                <a href="/profile.html" class="text-gray-700 hover:text-orange-500 font-bold text-sm transition">Dashboard (@${username})</a>
+                <a href="/profile.html" class="text-gray-700 hover:text-orange-500 font-bold text-sm transition">Profile & Settings</a>
                 <button onclick="craveBiteLogout()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-xs font-bold hover:bg-red-50 hover:text-red-500 transition">Log out</button>
             `;
         }
@@ -132,11 +141,24 @@
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             renderNavbar();
+            loadNotify();
             loadChatbot();
+            loadValidator();
         });
     } else {
         renderNavbar();
+        loadNotify();
         loadChatbot();
+        loadValidator();
+    }
+
+    function loadNotify() {
+        if (!document.getElementById('crave-notify-script')) {
+            const notScript = document.createElement('script');
+            notScript.id = 'crave-notify-script';
+            notScript.src = '/js/notify.js';
+            document.head.appendChild(notScript);
+        }
     }
 
     function loadChatbot() {
@@ -145,6 +167,15 @@
             botScript.id = 'cravebot-script';
             botScript.src = '/js/chatbot.js';
             document.body.appendChild(botScript);
+        }
+    }
+
+    function loadValidator() {
+        if (!document.getElementById('crave-validator-script')) {
+            const valScript = document.createElement('script');
+            valScript.id = 'crave-validator-script';
+            valScript.src = '/js/validator.js';
+            document.body.appendChild(valScript);
         }
     }
 })();

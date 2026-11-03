@@ -6,47 +6,93 @@
     <title>My Orders - CraveBite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Outfit', sans-serif; }</style>
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        .stepper-line { height: 3px; }
+    </style>
 </head>
 <body class="bg-gray-50 min-h-screen selection:bg-orange-500 selection:text-white flex flex-col">
 
 <!-- Dynamic Role Navbar -->
 <nav id="cravebite-nav"></nav>
 
-<main class="flex-grow max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 pb-6 border-b border-gray-200">
-        <div>
-            <h1 class="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">My Orders & Tracking</h1>
-            <p class="text-gray-500 text-sm mt-1">Track live food preparation, delivery progress, and past receipts.</p>
+<main class="flex-grow max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+    <!-- Header Banner with Background Image -->
+    <div class="mb-10 rounded-3xl p-8 relative overflow-hidden shadow-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-white" style="background-image: linear-gradient(135deg, rgba(17, 24, 39, 0.92) 0%, rgba(30, 20, 10, 0.85) 50%, rgba(234, 88, 12, 0.90) 100%), url('https://images.unsplash.com/photo-1543353071-873f17a7a088?auto=format&fit=crop&w=1920&q=80'); background-size: cover; background-position: center;">
+        <div class="relative z-10 max-w-xl">
+            <span class="inline-block px-3 py-1 rounded-full bg-orange-500/30 backdrop-blur text-orange-200 text-xs font-black uppercase tracking-wider mb-2 border border-orange-400/30">Order Dashboard</span>
+            <h1 class="text-3xl md:text-4xl font-black tracking-tight text-white">My Orders & Live Tracking</h1>
+            <p class="text-gray-200 text-xs md:text-sm mt-1 font-medium">Step-by-step real-time order tracking, kitchen prep progress, and schedule management.</p>
         </div>
-        <button onclick="loadAll()" class="bg-white hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-xl border border-gray-200 text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+        <button onclick="loadAll()" class="relative z-10 bg-white/95 hover:bg-white text-gray-900 px-5 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-1.5 shadow-md shrink-0">
             <span>🔄</span> Refresh Status
         </button>
     </div>
 
-    <!-- Section 1: Active Orders (Tracking) -->
-    <div class="mb-12">
-        <div class="flex items-center gap-3 mb-4">
-            <h2 class="text-2xl font-black text-gray-900">📍 Active Orders & Real-time Tracking</h2>
-            <span id="active-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-700">0 Active</span>
+    <!-- Filter Buttons & Search Toolbar -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <!-- Order Category Filter Tabs -->
+        <div class="flex flex-wrap gap-2 overflow-x-auto pb-1 w-full md:w-auto">
+            <button onclick="setOrderFilter('ALL')" id="tab-filter-ALL" class="order-tab-btn px-4 py-2 rounded-2xl text-xs font-bold bg-orange-500 text-white shadow-sm transition">
+                All Orders (<span id="count-all">0</span>)
+            </button>
+            <button onclick="setOrderFilter('SCHEDULED')" id="tab-filter-SCHEDULED" class="order-tab-btn px-4 py-2 rounded-2xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
+                ⏰ Scheduled Orders (<span id="count-scheduled">0</span>)
+            </button>
+            <button onclick="setOrderFilter('ACTIVE')" id="tab-filter-ACTIVE" class="order-tab-btn px-4 py-2 rounded-2xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
+                🔥 In Kitchen & Transit (<span id="count-active">0</span>)
+            </button>
+            <button onclick="setOrderFilter('COMPLETED')" id="tab-filter-COMPLETED" class="order-tab-btn px-4 py-2 rounded-2xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition">
+                ✅ Completed & History (<span id="count-completed">0</span>)
+            </button>
         </div>
-        <div id="active-container" class="space-y-4">
-            <p class="text-gray-400 font-medium animate-pulse">Loading active orders...</p>
+
+        <!-- Compact Search Input -->
+        <div class="w-full md:w-72 relative">
+            <input type="text" id="order-search" oninput="handleOrderSearch(this.value)" placeholder="🔍 Search Order #ID, restaurant..." class="w-full bg-white border border-gray-200 rounded-2xl px-4 py-2 text-xs font-medium focus:ring-2 focus:ring-orange-500 outline-none shadow-sm transition">
+            <span id="order-search-clear" onclick="clearOrderSearch()" class="hidden absolute right-3 top-2 text-xs text-gray-400 hover:text-gray-700 cursor-pointer font-bold">✕</span>
         </div>
     </div>
 
-    <!-- Section 2: Order History -->
-    <div>
-        <div class="flex items-center gap-3 mb-4">
-            <h2 class="text-2xl font-black text-gray-900">🧾 Past Orders History</h2>
-            <span id="history-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700">0 Completed</span>
-        </div>
-        <div id="history-container" class="space-y-4">
-            <p class="text-gray-400 font-medium animate-pulse">Loading order history...</p>
+    <!-- Orders Render List Container -->
+    <div id="orders-main-container" class="space-y-6">
+        <div class="bg-white p-12 rounded-3xl border border-gray-100 text-center">
+            <p class="text-gray-400 font-medium animate-pulse text-sm">Loading your orders and live tracking status...</p>
         </div>
     </div>
 </main>
+
+<!-- Reschedule Modal for Scheduled Orders -->
+<div id="rescheduleModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border border-gray-100">
+        <div class="flex justify-between items-center pb-4 border-b border-gray-100 mb-4">
+            <div>
+                <h3 class="text-lg font-black text-gray-900">Reschedule Order Delivery</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Select a future date and time before kitchen accepts</p>
+            </div>
+            <button onclick="closeRescheduleModal()" class="text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
+        </div>
+
+        <form onsubmit="handleRescheduleSubmit(event)" class="space-y-4">
+            <input type="hidden" id="reschedule-order-id" value="">
+            <div>
+                <span class="text-xs text-gray-500 block mb-1">Order Details</span>
+                <p id="reschedule-order-summary" class="text-xs font-bold text-gray-800 bg-gray-50 p-3 rounded-xl border border-gray-100">#Order - Restaurant</p>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">New Delivery Date & Time</label>
+                <input type="datetime-local" id="reschedule-datetime" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-orange-500">
+                <p class="text-[11px] text-gray-400 mt-1">Past dates and times are strictly blocked.</p>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                <button type="button" onclick="closeRescheduleModal()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-bold text-xs hover:bg-gray-200">Cancel</button>
+                <button type="submit" class="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-xs transition shadow">Save New Schedule</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <footer class="bg-gray-900 py-8 text-gray-400 mt-20">
     <div class="max-w-7xl mx-auto px-4 text-center text-xs">
@@ -54,6 +100,7 @@
     </div>
 </footer>
 
+<script src="/js/notify.js"></script>
 <script src="/js/navbar.js"></script>
 <script>
     const username = localStorage.getItem('username');
@@ -61,13 +108,19 @@
         window.location.href = '/login.html';
     }
 
+    let allOrders = [];
+    let currentTab = 'ALL';
+    let currentSearchQuery = '';
+
     function formatItemsList(o) {
         const resolveImg = u => !u ? '' : (u.startsWith('/') && window.location.port !== '8080' ? 'http://localhost:8080' + u : u);
         if (o.itemsList && o.itemsList.length > 0) {
             return `
                 <div class="space-y-1.5 my-2">
                     ${o.itemsList.map(item => {
-                        let imgTag = item.imageUrl ? `<img src="${resolveImg(item.imageUrl)}" class="w-8 h-8 rounded-lg object-cover border border-gray-200 shrink-0" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60'">` : `<span class="text-base">🍛</span>`;
+                        let imgTag = item.imageUrl 
+                            ? `<img src="${resolveImg(item.imageUrl)}" class="w-8 h-8 rounded-lg object-cover border border-gray-200 shrink-0" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60'">` 
+                            : `<span class="text-base">🍛</span>`;
                         return `
                             <div class="flex items-center justify-between text-xs bg-white p-2 rounded-xl border border-gray-100">
                                 <div class="flex items-center gap-2">
@@ -84,158 +137,369 @@
         return `<p class="text-gray-700"><strong>Dishes:</strong> ${o.itemsSummary || 'Food items'}</p>`;
     }
 
-    function loadActiveOrders() {
-        fetch(`http://localhost:8080/api/orders/tracking?username=${encodeURIComponent(username)}`)
-            .then(r => r.json())
-            .then(data => {
-                const container = document.getElementById('active-container');
-                const orders = data.orders || [];
-                document.getElementById('active-badge').innerText = `${orders.length} Active`;
+    // Step-by-Step Interactive Stepper Renderer for Customer Tracking
+    function renderLiveTrackingStepper(o) {
+        const status = o.orderStatus || 'PLACED';
 
-                if (!orders.length) {
-                    container.innerHTML = `
-                        <div class="bg-white p-8 rounded-3xl border border-gray-100 text-center shadow-sm">
-                            <span class="text-4xl block mb-2">🍽️</span>
-                            <h3 class="font-bold text-gray-800 text-base">No active orders right now</h3>
-                            <p class="text-xs text-gray-400 mt-1">Ready for a bite? Explore the <a href="/products-list.html" class="text-orange-500 font-bold underline">Food Menu</a> to order!</p>
-                        </div>
-                    `;
-                    return;
-                }
+        if (status === 'CANCELLED') {
+            return `
+                <div class="my-4 p-4 rounded-2xl bg-red-50 border border-red-200 text-xs font-bold text-red-700 flex items-center gap-2">
+                    <span class="text-base">🛑</span>
+                    <span>This order has been cancelled. If payment was deducted, a refund will be credited.</span>
+                </div>
+            `;
+        }
 
-                container.innerHTML = orders.map(o => {
-                    let badgeClass = 'bg-blue-100 text-blue-700';
-                    let progressText = 'Order placed, waiting for kitchen confirmation.';
-                    let canCancel = false;
+        // Stepper Stage Calculation
+        // 1: PLACED, 2: PREPARING, 3: OUT_FOR_DELIVERY, 4: DELIVERED
+        let currentStepNum = 1;
+        if (status === 'PREPARING') currentStepNum = 2;
+        if (status === 'OUT_FOR_DELIVERY') currentStepNum = 3;
+        if (status === 'DELIVERED') currentStepNum = 4;
 
-                    if (o.orderStatus === 'PLACED') {
-                        badgeClass = 'bg-blue-100 text-blue-700';
-                        progressText = 'Order received! Kitchen is about to start preparing.';
-                        canCancel = true;
-                    } else if (o.orderStatus === 'PREPARING') {
-                        badgeClass = 'bg-amber-100 text-amber-700';
-                        progressText = 'Kitchen is now freshly preparing your dishes.';
-                    } else if (o.orderStatus === 'OUT_FOR_DELIVERY') {
-                        badgeClass = 'bg-purple-100 text-purple-700';
-                        progressText = `Order is on the road! Delivery Rider: ${o.riderName || 'Assigned rider'}.`;
-                    }
+        const steps = [
+            { num: 1, title: 'Order Received', desc: 'Sent to Kitchen', icon: '📥' },
+            { num: 2, title: 'In Kitchen', desc: 'Cooking Dishes', icon: '👨‍🍳' },
+            { num: 3, title: 'Out for Delivery', desc: o.riderName ? `Rider: ${o.riderName}` : 'Handed to Rider', icon: '🛵' },
+            { num: 4, title: 'Delivered', desc: 'Enjoy your Meal!', icon: '🏁' }
+        ];
 
-                    const cancelButton = canCancel ? `
-                        <button onclick="cancelOrder(${o.id})" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold transition border border-red-200">
-                            Cancel Order
+        return `
+            <div class="my-5 p-5 bg-gradient-to-r from-orange-50/60 via-amber-50/40 to-white rounded-2xl border border-orange-100 shadow-xs">
+                <div class="flex items-center justify-between relative mb-2">
+                    ${steps.map((st, idx) => {
+                        const isPast = st.num < currentStepNum;
+                        const isCurrent = st.num === currentStepNum;
+
+                        let nodeClass = '';
+                        let iconOrCheck = st.icon;
+
+                        if (isPast) {
+                            nodeClass = 'bg-green-600 text-white ring-4 ring-green-100 shadow-sm';
+                            iconOrCheck = '✓';
+                        } else if (isCurrent) {
+                            nodeClass = 'bg-orange-500 text-white ring-4 ring-orange-200 animate-pulse shadow-md';
+                        } else {
+                            nodeClass = 'bg-gray-200 text-gray-500';
+                        }
+
+                        // Connecting line before node
+                        let lineHtml = '';
+                        if (idx > 0) {
+                            const isLineActive = st.num <= currentStepNum;
+                            lineHtml = `<div class="flex-1 stepper-line mx-2 rounded-full transition-all ${isLineActive ? 'bg-orange-500' : 'bg-gray-200'}"></div>`;
+                        }
+
+                        return `
+                            ${lineHtml}
+                            <div class="flex flex-col items-center text-center shrink-0">
+                                <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all ${nodeClass}">
+                                    ${iconOrCheck}
+                                </div>
+                                <span class="text-[11px] font-black mt-1.5 ${isCurrent ? 'text-orange-600' : (isPast ? 'text-gray-800' : 'text-gray-400')}">${st.title}</span>
+                                <span class="text-[9px] text-gray-400 max-w-[80px] hidden sm:block">${st.desc}</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    function setOrderFilter(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.order-tab-btn').forEach(btn => {
+            btn.className = 'order-tab-btn px-4 py-2 rounded-2xl text-xs font-bold bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition';
+        });
+        const activeBtn = document.getElementById(`tab-filter-${tab}`);
+        if (activeBtn) {
+            activeBtn.className = 'order-tab-btn px-4 py-2 rounded-2xl text-xs font-bold bg-orange-500 text-white shadow-sm transition';
+        }
+        renderOrdersList();
+    }
+
+    function handleOrderSearch(query) {
+        currentSearchQuery = (query || '').toLowerCase().trim();
+        const clearBtn = document.getElementById('order-search-clear');
+        if (currentSearchQuery) {
+            clearBtn.classList.remove('hidden');
+        } else {
+            clearBtn.classList.add('hidden');
+        }
+        renderOrdersList();
+    }
+
+    function clearOrderSearch() {
+        document.getElementById('order-search').value = '';
+        handleOrderSearch('');
+    }
+
+    function isScheduled(o) {
+        return !!(o.scheduledTime && o.scheduledTime.includes('Scheduled'));
+    }
+
+    function isActive(o) {
+        return ['PLACED', 'PREPARING', 'OUT_FOR_DELIVERY'].includes(o.orderStatus);
+    }
+
+    function isCompleted(o) {
+        return ['DELIVERED', 'CANCELLED'].includes(o.orderStatus);
+    }
+
+    function filterOrder(o) {
+        // Tab filtering
+        if (currentTab === 'SCHEDULED' && !isScheduled(o)) return false;
+        if (currentTab === 'ACTIVE' && !isActive(o)) return false;
+        if (currentTab === 'COMPLETED' && !isCompleted(o)) return false;
+
+        // Search text filtering
+        if (currentSearchQuery) {
+            const q = currentSearchQuery;
+            const idMatch = String(o.id || '').toLowerCase().includes(q);
+            const restMatch = (o.restaurantName || '').toLowerCase().includes(q);
+            const addrMatch = (o.deliveryAddress || '').toLowerCase().includes(q);
+            const itemsMatch = (o.itemsSummary || '').toLowerCase().includes(q);
+            const statusMatch = (o.orderStatus || '').toLowerCase().includes(q);
+            const dishMatch = o.itemsList ? o.itemsList.some(i => (i.name || '').toLowerCase().includes(q)) : false;
+            return idMatch || restMatch || addrMatch || itemsMatch || statusMatch || dishMatch;
+        }
+
+        return true;
+    }
+
+    function renderOrdersList() {
+        const container = document.getElementById('orders-main-container');
+        const filtered = allOrders.filter(filterOrder);
+
+        // Update counts
+        document.getElementById('count-all').innerText = allOrders.length;
+        document.getElementById('count-scheduled').innerText = allOrders.filter(isScheduled).length;
+        document.getElementById('count-active').innerText = allOrders.filter(isActive).length;
+        document.getElementById('count-completed').innerText = allOrders.filter(isCompleted).length;
+
+        if (!filtered.length) {
+            container.innerHTML = `
+                <div class="bg-white p-12 rounded-3xl border border-gray-100 text-center shadow-sm">
+                    <span class="text-4xl block mb-2">${currentSearchQuery ? '🔍' : '🍽️'}</span>
+                    <h3 class="font-bold text-gray-800 text-base">${currentSearchQuery ? 'No matching orders found' : 'No orders in this category'}</h3>
+                    <p class="text-xs text-gray-400 mt-1">${currentSearchQuery ? 'Try another keyword or clear search.' : 'Order fresh dishes from our <a href="/products-list.html" class="text-orange-500 font-bold underline">Food Menu</a>!'}</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filtered.map(o => {
+            const isOrderScheduled = isScheduled(o);
+            const isPlaced = o.orderStatus === 'PLACED';
+            const isFinished = isCompleted(o);
+
+            let statusBadgeClass = 'bg-blue-100 text-blue-700';
+            if (o.orderStatus === 'PREPARING') statusBadgeClass = 'bg-amber-100 text-amber-700';
+            if (o.orderStatus === 'OUT_FOR_DELIVERY') statusBadgeClass = 'bg-purple-100 text-purple-700';
+            if (o.orderStatus === 'DELIVERED') statusBadgeClass = 'bg-green-100 text-green-700';
+            if (o.orderStatus === 'CANCELLED') statusBadgeClass = 'bg-red-100 text-red-700';
+
+            // Schedule tag
+            const schedBadge = isOrderScheduled
+                ? `<span class="inline-flex items-center gap-1 bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-black border border-purple-200">
+                     <span>⏰</span> ${o.scheduledTime}
+                   </span>`
+                : '';
+
+            // Action Buttons: If order is still in PLACED status (before restaurant starts preparing)
+            // Customer can reschedule or delete
+            let scheduleActionButtons = '';
+            if (isPlaced) {
+                scheduleActionButtons = `
+                    <div class="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                        <span class="text-[11px] text-gray-400 font-medium mr-auto">Kitchen has not started cooking yet. You can update schedule or cancel.</span>
+                        ${isOrderScheduled ? `
+                            <button onclick="openRescheduleModal(${o.id}, '${(o.restaurantName || '').replace(/'/g, "\\'")}', '${o.scheduledTime || ''}')" class="px-3.5 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-xl text-xs font-bold transition border border-orange-200 flex items-center gap-1">
+                                <span>✏️</span> Reschedule Delivery
+                            </button>
+                        ` : ''}
+                        <button onclick="handleDeleteOrder(${o.id})" class="px-3.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold transition border border-red-200 flex items-center gap-1">
+                            <span>🗑️</span> Cancel & Delete
                         </button>
-                    ` : '';
+                    </div>
+                `;
+            } else if (!isFinished && isOrderScheduled) {
+                scheduleActionButtons = `
+                    <div class="mt-2 text-[11px] text-amber-700 bg-amber-50/60 p-2 rounded-xl border border-amber-100">
+                        🔒 Restaurant has accepted this scheduled order and started preparation. It cannot be rescheduled or cancelled.
+                    </div>
+                `;
+            }
 
-                    const schedTag = o.scheduledTime && o.scheduledTime.includes('Scheduled') 
-                        ? `<span class="inline-block mt-1 bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full text-[11px] font-black">⏰ ${o.scheduledTime}</span>` 
-                        : '';
-
-                    return `
-                        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-                            <div class="flex justify-between items-start mb-3">
-                                <div>
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <h3 class="text-lg font-black text-gray-900">Order #${o.id}</h3>
-                                        <span class="px-3 py-1 text-xs font-black rounded-full uppercase tracking-wider ${badgeClass}">${o.orderStatus}</span>
-                                    </div>
-                                    ${schedTag}
-                                    <p class="text-xs text-gray-500 mt-1">From: <strong class="text-gray-800">${o.restaurantName}</strong></p>
-                                </div>
-                                <span class="text-xl font-black text-orange-600">Rs. ${(o.totalAmount || 0).toFixed(2)}</span>
+            return `
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-3 border-b border-gray-100 gap-2">
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 class="text-lg font-black text-gray-900">Order #${o.id}</h3>
+                                <span class="px-3 py-0.5 text-xs font-black rounded-full uppercase tracking-wider ${statusBadgeClass}">${o.orderStatus}</span>
+                                ${schedBadge}
                             </div>
-
-                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 my-3 text-xs space-y-1">
-                                ${formatItemsList(o)}
-                                <p class="text-gray-700"><strong>Drop-off Address:</strong> ${o.deliveryAddress || 'Standard Delivery'}</p>
-                                <p class="text-orange-600 font-bold mt-1">● ${progressText}</p>
-                            </div>
-
-                            <div class="flex justify-end gap-3 pt-2">
-                                ${cancelButton}
-                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Kitchen: <strong class="text-gray-800">${o.restaurantName}</strong> • Placed on: ${o.orderDate ? new Date(o.orderDate).toLocaleString() : 'N/A'}</p>
                         </div>
-                    `;
-                }).join('');
-            })
-            .catch(err => {
-                console.error(err);
-                document.getElementById('active-container').innerHTML = `<p class="text-red-500 text-sm">Failed to load active orders.</p>`;
-            });
-    }
-
-    function loadOrderHistory() {
-        fetch(`http://localhost:8080/api/orders/history?username=${encodeURIComponent(username)}`)
-            .then(r => r.json())
-            .then(orders => {
-                const container = document.getElementById('history-container');
-                document.getElementById('history-badge').innerText = `${orders ? orders.length : 0} Past`;
-
-                if (!orders || !orders.length) {
-                    container.innerHTML = `
-                        <div class="bg-white p-8 rounded-3xl border border-gray-100 text-center shadow-sm">
-                            <span class="text-4xl block mb-2">📦</span>
-                            <h3 class="font-bold text-gray-800 text-base">No past orders yet</h3>
-                            <p class="text-xs text-gray-400 mt-1">Your past completed deliveries will be logged here.</p>
+                        <div class="text-right">
+                            <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block">Order Total</span>
+                            <span class="text-xl font-black text-orange-600">Rs. ${(o.totalAmount || 0).toFixed(2)}</span>
                         </div>
-                    `;
-                    return;
-                }
+                    </div>
 
-                container.innerHTML = orders.map(o => {
-                    const dateStr = o.orderDate ? new Date(o.orderDate).toLocaleDateString() : '';
-                    let badgeColor = o.orderStatus === 'CANCELLED' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700';
+                    <!-- Visual Live Tracking Stepper -->
+                    ${renderLiveTrackingStepper(o)}
 
-                    return `
-                        <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-                            <div class="flex justify-between items-start mb-2">
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <h3 class="text-base font-black text-gray-900">Order #${o.id}</h3>
-                                        <span class="px-2.5 py-0.5 text-xs font-bold rounded-full ${badgeColor}">${o.orderStatus}</span>
-                                    </div>
-                                    <p class="text-xs text-gray-500 mt-0.5">${o.restaurantName} • ${dateStr}</p>
-                                </div>
-                                <span class="text-lg font-black text-gray-900">Rs. ${(o.totalAmount || 0).toFixed(2)}</span>
-                            </div>
-                            <div class="my-2">${formatItemsList(o)}</div>
-                            ${o.orderStatus === 'DELIVERED' ? `
-                                <div class="mt-3 pt-3 border-t border-gray-50 flex justify-end">
-                                    <a href="/submit-review.html" class="text-xs font-bold text-orange-500 hover:text-orange-600 transition flex items-center gap-1">
-                                        ⭐ Rate & Review Dishes →
-                                    </a>
-                                </div>
-                            ` : ''}
+                    <div class="bg-gray-50/80 p-4 rounded-2xl border border-gray-100 my-3 text-xs space-y-1">
+                        ${formatItemsList(o)}
+                        <p class="text-gray-700 mt-2"><strong>📍 Destination:</strong> ${o.deliveryAddress || 'Standard Delivery'}</p>
+                    </div>
+
+                    ${scheduleActionButtons}
+
+                    ${o.orderStatus === 'DELIVERED' ? `
+                        <div class="mt-3 pt-3 border-t border-gray-50 flex justify-end">
+                            <a href="/submit-review.html" class="text-xs font-bold text-orange-500 hover:text-orange-600 transition flex items-center gap-1">
+                                ⭐ Rate & Review Culinary Dishes →
+                            </a>
                         </div>
-                    `;
-                }).join('');
-            })
-            .catch(err => {
-                console.error(err);
-                document.getElementById('history-container').innerHTML = `<p class="text-red-500 text-sm">Failed to load order history.</p>`;
-            });
-    }
-
-    function cancelOrder(orderId) {
-        if (!confirm('Are you sure you want to cancel this order?')) return;
-        fetch(`http://localhost:8080/api/orders/cancel/${orderId}?username=${encodeURIComponent(username)}`, { method: 'POST' })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Order cancelled successfully.');
-                    loadAll();
-                } else {
-                    alert(data.error || 'Cannot cancel order once preparation has started.');
-                }
-            })
-            .catch(err => alert('Server connection error.'));
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
     }
 
     function loadAll() {
-        loadActiveOrders();
-        loadOrderHistory();
+        Promise.all([
+            fetch(`http://localhost:8080/api/orders/tracking?username=${encodeURIComponent(username)}`).then(r => r.json()),
+            fetch(`http://localhost:8080/api/orders/history?username=${encodeURIComponent(username)}`).then(r => r.json())
+        ])
+        .then(([activeData, historyData]) => {
+            const activeOrders = activeData.orders || [];
+            const pastOrders = historyData || [];
+            
+            // Merge and deduplicate by ID
+            const map = new Map();
+            activeOrders.forEach(o => map.set(o.id, o));
+            pastOrders.forEach(o => map.set(o.id, o));
+
+            allOrders = Array.from(map.values()).sort((a, b) => b.id - a.id);
+            renderOrdersList();
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('orders-main-container').innerHTML = `
+                <div class="bg-white p-12 text-center text-red-500 rounded-3xl">Failed to load orders.</div>
+            `;
+        });
+    }
+
+    function openRescheduleModal(orderId, restaurantName, currentSchedule) {
+        document.getElementById('reschedule-order-id').value = orderId;
+        document.getElementById('reschedule-order-summary').innerText = `Order #${orderId} from ${restaurantName} (Current: ${currentSchedule || 'None'})`;
+        
+        // Strictly prevent picking past date and time: set min attribute to now
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        const minIso = now.toISOString().slice(0, 16);
+        const dateInput = document.getElementById('reschedule-datetime');
+        dateInput.min = minIso;
+        dateInput.value = minIso;
+
+        document.getElementById('rescheduleModal').classList.remove('hidden');
+    }
+
+    function closeRescheduleModal() {
+        document.getElementById('rescheduleModal').classList.add('hidden');
+    }
+
+    function handleRescheduleSubmit(e) {
+        e.preventDefault();
+        const orderId = document.getElementById('reschedule-order-id').value;
+        const datetimeVal = document.getElementById('reschedule-datetime').value;
+
+        if (!datetimeVal) {
+            if (window.Notify) Notify.warning('Time Required', 'Please select a valid future date and time');
+            else alert('Please select a valid future date and time');
+            return;
+        }
+
+        const selectedTime = new Date(datetimeVal);
+        if (selectedTime < new Date()) {
+            if (window.Notify) Notify.error('Invalid Time', 'Scheduled delivery date and time cannot be in the past. Please select a future date and time.');
+            else alert('Scheduled delivery date and time cannot be in the past. Please select a future date and time.');
+            return;
+        }
+
+        const params = new URLSearchParams();
+        params.append('orderId', orderId);
+        params.append('username', username);
+        params.append('scheduledTime', datetimeVal);
+
+        fetch(`http://localhost:8080/api/orders/schedule/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString()
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                if (window.Notify) Notify.toast('Order delivery schedule updated successfully!', 'success');
+                else alert('Order delivery schedule updated successfully!');
+                closeRescheduleModal();
+                loadAll();
+            } else {
+                if (window.Notify) Notify.error('Update Failed', data.error || 'Failed to update schedule');
+                else alert(data.error || 'Failed to update schedule');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            if (window.Notify) Notify.error('Server Error', 'Server error updating schedule');
+            else alert('Server error updating schedule');
+        });
+    }
+
+    function handleDeleteOrder(orderId) {
+        const doDelete = () => {
+            fetch(`http://localhost:8080/api/orders/delete/${orderId}?username=${encodeURIComponent(username)}`, {
+                method: 'POST'
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    if (window.Notify) Notify.toast('Order has been cancelled and removed.', 'info');
+                    else alert('Order has been cancelled and removed successfully.');
+                    loadAll();
+                } else {
+                    if (window.Notify) Notify.warning('Cannot Cancel', data.error || 'Cannot delete order once cooking has started.');
+                    else alert(data.error || 'Cannot delete order once cooking has started.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                if (window.Notify) Notify.error('Error', 'Server error deleting order');
+                else alert('Server error deleting order');
+            });
+        };
+
+        if (window.Notify && window.Notify.confirm) {
+            window.Notify.confirm(
+                'Cancel & Delete Order?',
+                'Are you sure you want to cancel and remove this scheduled order from your account?',
+                'Yes, Cancel Order',
+                'Keep Order'
+            ).then(res => {
+                if (res.isConfirmed) doDelete();
+            });
+        } else if (confirm('Are you sure you want to cancel and delete this order?')) {
+            doDelete();
+        }
     }
 
     loadAll();
+    setInterval(loadAll, 12000);
 </script>
 </body>
 </html>

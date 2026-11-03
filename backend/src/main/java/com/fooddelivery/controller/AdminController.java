@@ -19,6 +19,9 @@ public class AdminController {
     private UserRepository userRepository;
 
     @Autowired
+    private com.fooddelivery.repository.VehicleRepository vehicleRepository;
+
+    @Autowired
     private OrderRepository orderRepository;
 
     private boolean isAdmin(String username) {
@@ -44,6 +47,7 @@ public class AdminController {
             map.put("fullName", u.getFullName());
             map.put("email", u.getEmail());
             map.put("roleName", u.getRoleName());
+            map.put("profilePictureUrl", u.getProfilePictureUrl() != null ? u.getProfilePictureUrl() : "");
             if (u instanceof Customer) {
                 map.put("specificField", ((Customer) u).getDefaultDeliveryAddress());
             } else if (u instanceof Rider) {
@@ -207,58 +211,116 @@ public class AdminController {
     public ResponseEntity<?> getAllRiderVehicles(@RequestParam String username) {
         if (!isAdmin(username)) return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
 
-        List<User> users = userRepository.findAll();
-        List<Map<String, Object>> vehicles = users.stream()
-                .filter(u -> u instanceof Rider)
-                .map(u -> {
+        List<com.fooddelivery.model.Vehicle> vList = vehicleRepository.findAllByOrderByCreatedAtDesc();
+        List<Map<String, Object>> vehicles = new java.util.ArrayList<>();
+
+        for (com.fooddelivery.model.Vehicle v : vList) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("vehicleId", v.getId());
+            map.put("username", v.getRiderUsername());
+            map.put("vehicleType", v.getVehicleType());
+            map.put("vehicleTypeDisplay", v.getVehicleTypeDisplay());
+            map.put("vehiclePlateNumber", v.getVehiclePlateNumber());
+            map.put("vehicleModel", v.getVehicleModel());
+            map.put("vehicleColor", v.getVehicleColor());
+            map.put("vehicleImageUrl", v.getVehicleImageUrl() != null ? v.getVehicleImageUrl() : "");
+            map.put("vehicleApprovalStatus", v.getVehicleApprovalStatus());
+            map.put("vehicleAdminNotes", v.getVehicleAdminNotes() != null ? v.getVehicleAdminNotes() : "");
+
+            User riderUser = userRepository.findByUsername(v.getRiderUsername()).orElse(null);
+            if (riderUser instanceof Rider) {
+                Rider r = (Rider) riderUser;
+                map.put("riderId", r.getId());
+                map.put("fullName", r.getFullName());
+                map.put("email", r.getEmail());
+                map.put("phoneNumber", r.getPhoneNumber() != null ? r.getPhoneNumber() : "N/A");
+            } else {
+                map.put("fullName", v.getRiderUsername());
+                map.put("email", "N/A");
+                map.put("phoneNumber", "N/A");
+            }
+            vehicles.add(map);
+        }
+
+        // If no records in Vehicle table yet, fallback to users table
+        if (vehicles.isEmpty()) {
+            List<User> users = userRepository.findAll();
+            for (User u : users) {
+                if (u instanceof Rider) {
                     Rider r = (Rider) u;
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("riderId", r.getId());
-                    map.put("username", r.getUsername());
-                    map.put("fullName", r.getFullName());
-                    map.put("email", r.getEmail());
-                    map.put("phoneNumber", r.getPhoneNumber() != null ? r.getPhoneNumber() : "N/A");
-                    map.put("vehicleType", r.getVehicleType() != null ? r.getVehicleType() : "BIKE");
-                    map.put("vehicleTypeDisplay", r.getVehicleTypeDisplay());
-                    map.put("vehiclePlateNumber", r.getVehiclePlateNumber() != null ? r.getVehiclePlateNumber() : "Not Registered");
-                    map.put("vehicleModel", r.getVehicleModel() != null ? r.getVehicleModel() : "N/A");
-                    map.put("vehicleColor", r.getVehicleColor() != null ? r.getVehicleColor() : "N/A");
-                    map.put("vehicleImageUrl", r.getVehicleImageUrl() != null ? r.getVehicleImageUrl() : "");
-                    String status = r.getVehicleApprovalStatus();
-                    if (status == null || status.trim().isEmpty()) {
-                        status = (r.getVehiclePlateNumber() != null && !r.getVehiclePlateNumber().isEmpty()) ? "APPROVED" : "PENDING_APPROVAL";
+                    if (r.getVehiclePlateNumber() != null && !r.getVehiclePlateNumber().isEmpty()) {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("riderId", r.getId());
+                        map.put("username", r.getUsername());
+                        map.put("fullName", r.getFullName());
+                        map.put("email", r.getEmail());
+                        map.put("phoneNumber", r.getPhoneNumber() != null ? r.getPhoneNumber() : "N/A");
+                        map.put("vehicleType", r.getVehicleType() != null ? r.getVehicleType() : "BIKE");
+                        map.put("vehicleTypeDisplay", r.getVehicleTypeDisplay());
+                        map.put("vehiclePlateNumber", r.getVehiclePlateNumber());
+                        map.put("vehicleModel", r.getVehicleModel() != null ? r.getVehicleModel() : "N/A");
+                        map.put("vehicleColor", r.getVehicleColor() != null ? r.getVehicleColor() : "N/A");
+                        map.put("vehicleImageUrl", r.getVehicleImageUrl() != null ? r.getVehicleImageUrl() : "");
+                        map.put("vehicleApprovalStatus", r.getVehicleApprovalStatus() != null ? r.getVehicleApprovalStatus() : "APPROVED");
+                        map.put("vehicleAdminNotes", r.getVehicleAdminNotes() != null ? r.getVehicleAdminNotes() : "");
+                        vehicles.add(map);
                     }
-                    map.put("vehicleApprovalStatus", status);
-                    map.put("vehicleAdminNotes", r.getVehicleAdminNotes() != null ? r.getVehicleAdminNotes() : "");
-                    return map;
-                })
-                .collect(Collectors.toList());
+                }
+            }
+        }
 
         return ResponseEntity.ok(vehicles);
     }
 
     @PostMapping("/vehicles/validate")
     public ResponseEntity<?> validateVehicle(@RequestParam String username,
-                                            @RequestParam Long riderId,
+                                            @RequestParam(required = false) Long riderId,
+                                            @RequestParam(required = false) Long vehicleId,
                                             @RequestParam String status,
                                             @RequestParam(required = false) String adminNotes) {
         if (!isAdmin(username)) return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
 
-        User user = userRepository.findById(riderId).orElse(null);
-        if (!(user instanceof Rider)) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Rider not found"));
-        }
-
-        Rider rider = (Rider) user;
         String normalizedStatus = "APPROVED".equalsIgnoreCase(status) ? "APPROVED" : "REJECTED";
-        rider.setVehicleApprovalStatus(normalizedStatus);
-        if (adminNotes != null && !adminNotes.trim().isEmpty()) {
-            rider.setVehicleAdminNotes(adminNotes.trim());
-        } else {
-            rider.setVehicleAdminNotes("APPROVED".equals(normalizedStatus) ? "Vehicle verified by Admin" : "Vehicle rejected by Admin");
-        }
-        userRepository.save(rider);
+        String note = (adminNotes != null && !adminNotes.trim().isEmpty())
+                ? adminNotes.trim()
+                : ("APPROVED".equals(normalizedStatus) ? "Vehicle verified by Admin" : "Vehicle rejected by Admin");
 
-        return ResponseEntity.ok(Map.of("success", true, "message", "Vehicle status set to " + normalizedStatus));
+        if (vehicleId != null) {
+            com.fooddelivery.model.Vehicle v = vehicleRepository.findById(vehicleId).orElse(null);
+            if (v != null) {
+                v.setVehicleApprovalStatus(normalizedStatus);
+                v.setVehicleAdminNotes(note);
+                vehicleRepository.save(v);
+
+                User riderUser = userRepository.findByUsername(v.getRiderUsername()).orElse(null);
+                if (riderUser instanceof Rider) {
+                    Rider r = (Rider) riderUser;
+                    r.setVehicleApprovalStatus(normalizedStatus);
+                    r.setVehicleAdminNotes(note);
+                    userRepository.save(r);
+                }
+                return ResponseEntity.ok(Map.of("success", true, "message", "Vehicle status set to " + normalizedStatus));
+            }
+        }
+
+        if (riderId != null) {
+            User user = userRepository.findById(riderId).orElse(null);
+            if (user instanceof Rider) {
+                Rider rider = (Rider) user;
+                rider.setVehicleApprovalStatus(normalizedStatus);
+                rider.setVehicleAdminNotes(note);
+                userRepository.save(rider);
+
+                List<com.fooddelivery.model.Vehicle> vList = vehicleRepository.findByRiderUsernameOrderByCreatedAtDesc(rider.getUsername());
+                for (com.fooddelivery.model.Vehicle v : vList) {
+                    v.setVehicleApprovalStatus(normalizedStatus);
+                    v.setVehicleAdminNotes(note);
+                    vehicleRepository.save(v);
+                }
+                return ResponseEntity.ok(Map.of("success", true, "message", "Vehicle status set to " + normalizedStatus));
+            }
+        }
+
+        return ResponseEntity.badRequest().body(Map.of("error", "Rider or Vehicle not found"));
     }
 }

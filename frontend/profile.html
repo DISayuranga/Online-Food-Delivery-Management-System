@@ -26,22 +26,57 @@
 <!-- Main Container -->
 <main class="flex-grow max-w-7xl mx-auto w-full mt-8 px-4 sm:px-6 lg:px-8 pb-20">
     
-    <!-- Top Welcome Banner -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 pb-6 border-b border-gray-200">
-        <div>
-            <div class="flex items-center gap-3">
-                <h1 class="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">
-                    Welcome, <span id="welcome-name" class="text-orange-500">User</span>! 👋
-                </h1>
-                <span id="role-badge" class="px-3.5 py-1 text-xs font-black rounded-full bg-orange-100 text-orange-700 uppercase tracking-wider">
-                    ROLE
-                </span>
+    <!-- Top Welcome Banner with Background Image & Profile Picture -->
+    <div class="relative overflow-hidden rounded-3xl mb-8 shadow-lg border border-gray-100 bg-gray-900 text-white">
+        <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80" 
+             alt="Profile Header Banner" 
+             class="absolute inset-0 w-full h-full object-cover opacity-25">
+        <div class="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-900/90 to-transparent"></div>
+
+        <div class="relative z-10 p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+                <!-- Profile Avatar Container -->
+                <div class="relative group">
+                    <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-orange-500 overflow-hidden shadow-xl bg-orange-50 flex items-center justify-center text-4xl font-extrabold text-orange-600">
+                        <img id="profile-pic-img" src="" alt="Profile Photo" class="w-full h-full object-cover hidden">
+                        <span id="profile-pic-fallback">👤</span>
+                    </div>
+                    <label for="profile-pic-input" class="absolute bottom-0 right-0 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full shadow-lg cursor-pointer transition transform hover:scale-110" title="Upload new photo">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </label>
+                    <input type="file" id="profile-pic-input" accept="image/*" class="hidden" onchange="handleProfilePicUpload(event)">
+                </div>
+
+                <!-- User Details -->
+                <div>
+                    <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                        <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">
+                            Welcome, <span id="welcome-name" class="text-orange-400">User</span>! 👋
+                        </h1>
+                        <span id="role-badge" class="px-3 py-1 text-xs font-black rounded-full bg-orange-500/20 text-orange-300 border border-orange-400/30 uppercase tracking-wider">
+                            ROLE
+                        </span>
+                    </div>
+                    <p class="text-gray-300 text-xs sm:text-sm mt-1 max-w-xl">
+                        Manage your account profile, profile photo, delivery addresses, and payment methods.
+                    </p>
+                    <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
+                        <span class="text-xs font-mono font-bold text-gray-300 bg-white/10 px-3 py-1 rounded-full backdrop-blur border border-white/10" id="display-username">@username</span>
+                        <button id="profile-pic-delete-btn" onclick="handleProfilePicDelete()" class="hidden text-xs font-bold bg-red-500/20 hover:bg-red-500/40 text-red-300 border border-red-500/30 px-3 py-1 rounded-full transition">
+                            🗑️ Remove Photo
+                        </button>
+                    </div>
+                </div>
             </div>
-            <p class="text-gray-500 text-sm mt-1">Manage your account profile, delivery locations with map routing, and payment cards.</p>
-        </div>
-        <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-gray-400 bg-gray-100 px-3 py-1.5 rounded-full" id="display-username">@username</span>
-            <button onclick="craveBiteLogout()" class="text-xs font-bold bg-red-50 text-red-600 px-4 py-2 rounded-full hover:bg-red-100 transition">Log out</button>
+
+            <div class="flex items-center gap-3">
+                <button onclick="craveBiteLogout()" class="text-xs font-bold bg-white/10 hover:bg-red-600 text-white px-5 py-2.5 rounded-full transition backdrop-blur border border-white/20 shadow">
+                    Log out
+                </button>
+            </div>
         </div>
     </div>
 
@@ -204,7 +239,7 @@
 
                         <div id="phone-container" class="hidden">
                             <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Contact Phone Number</label>
-                            <input type="text" id="phoneNumber" name="phoneNumber" placeholder="e.g. 077 123 4567" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium text-sm focus:ring-2 focus:ring-orange-500 outline-none transition">
+                            <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="e.g. 0771234567" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-medium text-sm focus:ring-2 focus:ring-orange-500 outline-none transition">
                         </div>
 
                         <div id="specific-field-container" class="hidden">
@@ -235,7 +270,7 @@
         </div>
     </div>
 
-    <!-- TAB 2: Delivery Locations (CRUD with Map) -->
+    <!-- TAB 2: Delivery Locations with Map -->
     <div id="tab-locations-section" class="hidden space-y-8">
         
         <!-- Header & Add Toggle -->
@@ -287,7 +322,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Recipient Phone Number</label>
-                        <input type="text" id="addr-phoneNumber" required placeholder="e.g. 077 123 4567" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
+                        <input type="tel" id="addr-phoneNumber" required placeholder="e.g. 0771234567" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
                     </div>
                 </div>
 
@@ -317,7 +352,7 @@
                 </div>
 
                 <div>
-                    <label id="addr-detail-label" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Gate / Security Code (Optional)</label>
+                    <label id="addr-detail-label" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Gate / Security Code</label>
                     <input type="text" id="addr-specificDetail" placeholder="e.g. Black gate, Ring bell #3" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
                 </div>
 
@@ -335,7 +370,7 @@
 
     </div>
 
-    <!-- TAB 3: Payment Cards (CRUD with SVG Realistic Display) -->
+    <!-- TAB 3: Payment Cards with SVG Realistic Display -->
     <div id="tab-cards-section" class="hidden space-y-8">
         
         <!-- Header & Add Toggle -->
@@ -366,8 +401,8 @@
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Card Type</label>
                         <select id="card-type" required onchange="handleCardTypeChange()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none">
-                            <option value="CREDIT">Credit Card (Visa / Mastercard)</option>
-                            <option value="DEBIT">Debit Card (Direct Bank Transfer)</option>
+                            <option value="CREDIT">Credit Card • Visa / Mastercard</option>
+                            <option value="DEBIT">Debit Card • Direct Bank Transfer</option>
                         </select>
                     </div>
                     <div>
@@ -378,16 +413,16 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Card Number (16 Digits)</label>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Card Number • 16 Digits</label>
                         <input type="text" id="card-number" required maxlength="19" placeholder="4111 2222 3333 4444" oninput="formatCardNumberInput(this)" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono tracking-widest font-bold focus:ring-2 focus:ring-orange-500 outline-none">
                     </div>
                     <div>
-                        <label id="card-detail-label" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Credit Limit (Rs.)</label>
+                        <label id="card-detail-label" class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Credit Limit • Rs.</label>
                         <input type="text" id="card-specificDetail" placeholder="e.g. 50000" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none">
                     </div>
                 </div>
 
-                <!-- Expiry Date (Month / Year) and CVV -->
+                <!-- Expiry Date and CVV -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Expiry Month</label>
@@ -422,7 +457,7 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">CVV / CVC (3-4 Digits)</label>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">CVV / CVC • 3-4 Digits</label>
                         <input type="password" id="card-cvv" required maxlength="4" placeholder="•••" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono tracking-widest font-bold focus:ring-2 focus:ring-orange-500 outline-none">
                     </div>
                 </div>
@@ -449,6 +484,7 @@
     </div>
 </footer>
 
+<script src="/js/notify.js"></script>
 <script src="/js/navbar.js"></script>
 <script>
     const username = localStorage.getItem('username');
@@ -499,6 +535,20 @@
         document.getElementById('display-username').innerText = '@' + user.username;
         document.getElementById('role-badge').innerText = data.roleName || user.roleType;
 
+        // Profile Picture setup
+        if (user.profilePictureUrl) {
+            document.getElementById('profile-pic-img').src = user.profilePictureUrl;
+            document.getElementById('profile-pic-img').classList.remove('hidden');
+            document.getElementById('profile-pic-fallback').classList.add('hidden');
+            document.getElementById('profile-pic-delete-btn').classList.remove('hidden');
+            localStorage.setItem('profilePictureUrl', user.profilePictureUrl);
+        } else {
+            document.getElementById('profile-pic-img').classList.add('hidden');
+            document.getElementById('profile-pic-fallback').classList.remove('hidden');
+            document.getElementById('profile-pic-delete-btn').classList.add('hidden');
+            localStorage.removeItem('profilePictureUrl');
+        }
+
         document.getElementById('fullName').value = user.fullName || '';
         document.getElementById('email').value = user.email || '';
 
@@ -544,6 +594,70 @@
             document.getElementById('admin-quick-links').classList.remove('hidden');
         }
     });
+
+    // Profile Picture Upload Handler
+    function handleProfilePicUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('profileImage', file);
+
+        fetch('http://localhost:8080/api/profile/picture/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('profile-pic-img').src = data.profilePictureUrl;
+                document.getElementById('profile-pic-img').classList.remove('hidden');
+                document.getElementById('profile-pic-fallback').classList.add('hidden');
+                document.getElementById('profile-pic-delete-btn').classList.remove('hidden');
+                localStorage.setItem('profilePictureUrl', data.profilePictureUrl);
+                if (typeof renderCraveBiteNav === 'function') renderCraveBiteNav();
+                alert('Profile picture updated successfully!');
+            } else {
+                alert(data.error || 'Failed to upload profile picture');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Server error uploading profile picture');
+        });
+    }
+
+    // Profile Picture Delete Handler
+    function handleProfilePicDelete() {
+        if (!confirm('Are you sure you want to remove your profile picture?')) return;
+
+        fetch('http://localhost:8080/api/profile/picture/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `username=${encodeURIComponent(username)}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('profile-pic-img').classList.add('hidden');
+                document.getElementById('profile-pic-img').src = '';
+                document.getElementById('profile-pic-fallback').classList.remove('hidden');
+                document.getElementById('profile-pic-delete-btn').classList.add('hidden');
+                const fileInput = document.getElementById('profile-pic-input');
+                if (fileInput) fileInput.value = '';
+                localStorage.removeItem('profilePictureUrl');
+                if (typeof renderCraveBiteNav === 'function') renderCraveBiteNav();
+                alert('Profile picture removed successfully!');
+            } else {
+                alert(data.error || 'Failed to remove profile picture');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Server error removing profile picture');
+        });
+    }
 
     // Profile update
     function handleProfileUpdate(e) {
@@ -595,7 +709,7 @@
     }
 
     /* -------------------------------------------------------------
-       DELIVERY LOCATIONS CRUD & INTERACTIVE MAP ROUTING
+       DELIVERY LOCATIONS & INTERACTIVE MAP ROUTING
     ------------------------------------------------------------- */
     function initAddressMap() {
         if (addressMap) {
@@ -681,10 +795,10 @@
         const label = document.getElementById('addr-detail-label');
         const input = document.getElementById('addr-specificDetail');
         if (type === 'HOME') {
-            label.innerText = 'Gate / Security Code (Optional)';
+            label.innerText = 'Gate / Security Code';
             input.placeholder = 'e.g. Black gate, Ring bell #3';
         } else {
-            label.innerText = 'Floor & Company Name (Office Details)';
+            label.innerText = 'Floor & Company Name • Office Details';
             input.placeholder = 'e.g. 5th Floor, Suite 502, TechCorp';
         }
     }
@@ -869,7 +983,7 @@
 
 
     /* -------------------------------------------------------------
-       ONLINE PAYMENT CARDS CRUD & REALISTIC SVG DISPLAY
+       ONLINE PAYMENT CARDS & REALISTIC SVG DISPLAY
     ------------------------------------------------------------- */
     function toggleCardForm(show) {
         const container = document.getElementById('card-form-container');
@@ -894,11 +1008,11 @@
         const label = document.getElementById('card-detail-label');
         const input = document.getElementById('card-specificDetail');
         if (type === 'CREDIT') {
-            label.innerText = 'Credit Limit (Rs.)';
+            label.innerText = 'Credit Limit • Rs.';
             input.placeholder = 'e.g. 50000';
             input.type = 'number';
         } else {
-            label.innerText = 'Bank Name (Debit Account)';
+            label.innerText = 'Bank Name • Debit Account';
             input.placeholder = 'e.g. Commercial Bank';
             input.type = 'text';
         }

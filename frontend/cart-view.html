@@ -15,15 +15,21 @@
 <!-- Dynamic Navbar -->
 <nav id="cravebite-nav"></nav>
 
-<div class="max-w-6xl mx-auto mt-12 px-4 sm:px-6 lg:px-8 pb-24 grid grid-cols-1 lg:grid-cols-3 gap-12">
+<div class="max-w-6xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 pb-24 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Cart Header Banner -->
+    <div class="col-span-full rounded-3xl p-8 relative overflow-hidden shadow-md flex justify-between items-center text-white" style="background-image: linear-gradient(135deg, rgba(17, 24, 39, 0.90) 0%, rgba(30, 20, 10, 0.82) 50%, rgba(234, 88, 12, 0.88) 100%), url('https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1920&q=80'); background-size: cover; background-position: center;">
+        <div class="relative z-10">
+            <span class="inline-block px-3 py-1 rounded-full bg-orange-500/30 backdrop-blur text-orange-200 text-xs font-black uppercase tracking-wider mb-2 border border-orange-400/30">Checkout Ready</span>
+            <h1 class="text-3xl md:text-4xl font-black tracking-tight text-white">Your Cart</h1>
+            <p class="text-gray-200 text-xs md:text-sm mt-1 font-medium">Review your dishes, adjust servings, and proceed to checkout.</p>
+        </div>
+        <button onclick="clearCart()" class="relative z-10 text-xs font-bold text-red-200 bg-red-950/50 hover:bg-red-900/70 border border-red-500/40 px-4 py-2 rounded-xl transition">
+            Clear Cart
+        </button>
+    </div>
+
     <!-- Cart Items Section -->
     <div class="lg:col-span-2">
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-4xl font-black text-gray-900 tracking-tight">Your Cart</h1>
-            <button onclick="clearCart()" class="text-sm font-bold text-red-500 hover:text-red-600 transition underline underline-offset-4">
-                Clear Cart
-            </button>
-        </div>
         
         <div id="cart-items-container">
             <!-- Items injected by JS -->
@@ -44,14 +50,18 @@
             <div class="space-y-4 mb-6">
                 <div class="flex justify-between">
                     <span class="text-gray-500 font-medium">Subtotal</span>
-                    <span class="font-bold text-gray-900" id="summary-subtotal">Rs. 0</span>
+                    <span class="font-bold text-gray-900" id="summary-subtotal">Rs. 0.00</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-500 font-medium flex items-center gap-1.5">🛵 Delivery Fee</span>
+                    <span class="font-bold text-orange-600" id="summary-delivery">+ Rs. 350.00</span>
                 </div>
             </div>
             
             <div class="flex justify-between items-end mb-8 pt-6 border-t border-gray-100">
                 <span class="text-gray-900 font-bold">Total</span>
                 <span class="text-4xl font-black text-orange-500" id="summary-total">
-                    Rs. 0
+                    Rs. 0.00
                 </span>
             </div>
             
@@ -87,15 +97,21 @@
         
         if (!items || items.length === 0) {
             emptyMsg.classList.remove('hidden');
-            document.getElementById('summary-subtotal').innerText = 'Rs. 0';
-            document.getElementById('summary-total').innerText = 'Rs. 0';
+            document.getElementById('summary-subtotal').innerText = 'Rs. 0.00';
+            document.getElementById('summary-delivery').innerText = 'Rs. 0.00';
+            document.getElementById('summary-total').innerText = 'Rs. 0.00';
             document.getElementById('checkout-btn').classList.add('opacity-50', 'cursor-not-allowed');
             return;
         }
 
+        const subtotal = Number(totalValue || 0);
+        const deliveryFee = subtotal > 0 ? 350.00 : 0.00;
+        const grandTotal = subtotal > 0 ? (subtotal + deliveryFee) : 0.00;
+
         emptyMsg.classList.add('hidden');
-        document.getElementById('summary-subtotal').innerText = `Rs. ${totalValue}`;
-        document.getElementById('summary-total').innerText = `Rs. ${totalValue}`;
+        document.getElementById('summary-subtotal').innerText = `Rs. ${subtotal.toFixed(2)}`;
+        document.getElementById('summary-delivery').innerText = subtotal > 0 ? `+ Rs. ${deliveryFee.toFixed(2)}` : 'Rs. 0.00';
+        document.getElementById('summary-total').innerText = `Rs. ${grandTotal.toFixed(2)}`;
         document.getElementById('checkout-btn').classList.remove('opacity-50', 'cursor-not-allowed');
 
         const resolveImg = u => !u ? '' : (u.startsWith('/') && window.location.port !== '8080' ? 'http://localhost:8080' + u : u);
@@ -112,6 +128,8 @@
                 imgHtml = `<div class="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center text-3xl shrink-0">${emoji}</div>`;
             }
 
+            const itemUnitPrice = item.foodItem ? (item.foodItem.finalPrice || item.foodItem.basePrice || 0).toFixed(2) : '0.00';
+
             const div = document.createElement('div');
             div.className = 'bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group';
             div.innerHTML = `
@@ -119,7 +137,7 @@
                     ${imgHtml}
                     <div>
                         <h3 class="text-xl font-bold text-gray-900">${item.foodItem ? item.foodItem.name : 'Food Item'}</h3>
-                        <p class="text-sm font-medium text-gray-500">Rs. ${item.foodItem ? item.foodItem.basePrice : 0} each</p>
+                        <p class="text-sm font-medium text-orange-600 font-bold">Rs. ${itemUnitPrice} each</p>
                     </div>
                 </div>
                 <div class="flex items-center justify-between sm:justify-end space-x-6">
@@ -142,28 +160,61 @@
     function updateCart(id) {
         const qty = document.getElementById(`qty-${id}`).value;
         fetch(`http://localhost:8080/api/cart/update/${id}?username=${username}&quantity=${qty}`, { method: 'POST' })
-        .then(() => loadCart());
+        .then(() => {
+            if (window.Notify) window.Notify.toast('Cart updated');
+            loadCart();
+        });
     }
 
     function removeCart(id) {
         fetch(`http://localhost:8080/api/cart/remove/${id}?username=${username}`, { method: 'POST' })
-        .then(() => loadCart());
+        .then(() => {
+            if (window.Notify) window.Notify.toast('Item removed from cart', 'info');
+            loadCart();
+        });
     }
 
     function clearCart() {
-        if(confirm('Clear cart?')) {
+        if (window.Notify && window.Notify.confirm) {
+            window.Notify.confirm('Clear Cart?', 'Are you sure you want to remove all items from your cart?', 'Yes, Clear Cart').then(res => {
+                if (res.isConfirmed) {
+                    fetch(`http://localhost:8080/api/cart/clear?username=${username}`, { method: 'POST' })
+                    .then(() => {
+                        window.Notify.toast('Cart cleared', 'info');
+                        loadCart();
+                    });
+                }
+            });
+        } else if (confirm('Clear cart?')) {
             fetch(`http://localhost:8080/api/cart/clear?username=${username}`, { method: 'POST' })
             .then(() => loadCart());
         }
     }
 
     function checkout() {
-        window.location.href = '/checkout.html';
+        const subtotalText = document.getElementById('summary-subtotal').innerText.replace('Rs. ', '').trim();
+        const subtotal = parseFloat(subtotalText) || 0;
+        if (subtotal <= 0) {
+            if (window.Notify) window.Notify.warning('Your cart is empty', 'Please add items before checking out.');
+            else alert('Your cart is empty');
+            return;
+        }
+        const deliveryFee = 350.00;
+        const grandTotal = subtotal + deliveryFee;
+
+        if (window.Notify && window.Notify.confirmCheckout) {
+            window.Notify.confirmCheckout(subtotal, deliveryFee, grandTotal, () => {
+                window.location.href = '/checkout.html';
+            });
+        } else {
+            window.location.href = '/checkout.html';
+        }
     }
 
     // Load on start
     loadCart();
 </script>
+<script src="/js/notify.js"></script>
 <script src="/js/navbar.js"></script>
 </body>
 </html>

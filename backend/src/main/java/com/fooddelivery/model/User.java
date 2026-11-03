@@ -28,6 +28,9 @@ public abstract class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = true)
+    private String profilePictureUrl;
+
     // OOP: Polymorphism - Abstract method meant to be overridden by subclasses.
     public abstract String getRoleName();
 
@@ -73,6 +76,14 @@ public abstract class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
     }
 
     @Override
