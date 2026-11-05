@@ -47,5 +47,73 @@ public class ProductController {
         return ResponseEntity.ok(foodItemRepository.findByOwner(owner));
     }
 
+    @PostMapping("/add")
+    public ResponseEntity<?> addProduct(@RequestParam String username,
+                                        @RequestParam String name,
+                                        @RequestParam String description,
+                                        @RequestParam double basePrice,
+                                        @RequestParam String type,
+                                        @RequestParam(required = false) String imageUrl,
+                                        @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+                                        @RequestParam(defaultValue = "true") boolean available) {
+        RestaurantOwner owner = getOwner(username);
+        if (owner == null) return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+
+        // Process device image upload if provided
+        String finalImageUrl = imageUrl;
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try {
+                String originalFilename = imageFile.getOriginalFilename();
+                String ext = ".jpg";
+                if (originalFilename != null && originalFilename.lastIndexOf(".") > 0) {
+                    ext = originalFilename.substring(originalFilename.lastIndexOf("."));
+                }
+                String filename = "dish_" + System.currentTimeMillis() + ext;
+                byte[] bytes = imageFile.getBytes();
+
+                File[] targetDirs = new File[] {
+                    new File("uploads"),
+                    new File("../frontend/uploads"),
+                    new File("frontend/uploads"),
+                    new File("target/classes/static/uploads")
+                };
+                for (File dir : targetDirs) {
+                    if (!dir.exists()) dir.mkdirs();
+                    File dest = new File(dir, filename);
+                    Files.write(dest.toPath(), bytes);
+                }
+                finalImageUrl = "/uploads/" + filename;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // OOP: Polymorphism - Instantiating specific subclasses
+        FoodItem newItem;
+        switch (type.toUpperCase()) {
+            case "MAIN_COURSE":
+                newItem = new MainCourse();
+                break;
+            case "DESSERT":
+                newItem = new Dessert();
+                break;
+            case "BEVERAGE":
+                newItem = new Beverage();
+                break;
+            default:
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid food type"));
+        }
+
+        newItem.setName(name);
+        newItem.setDescription(description);
+        newItem.setBasePrice(basePrice);
+        newItem.setImageUrl(finalImageUrl);
+        newItem.setAvailable(available);
+        newItem.setOwner(owner);
+
+        foodItemRepository.save(newItem);
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
    
 }
