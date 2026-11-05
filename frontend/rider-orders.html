@@ -75,21 +75,83 @@
         </div>
     </div>
 
-    <!-- Orders Filter & Search Toolbar -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div>
-            <h2 class="text-xl font-black text-gray-900">Live Delivery Queue</h2>
-            <p class="text-xs text-gray-500">Live order status and dispatch queue</p>
+    <!-- Performance & Fleet KPI Overview -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-2xl shrink-0">
+                🛵
+            </div>
+            <div>
+                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">In Transit</p>
+                <h4 id="kpi-active-count" class="text-2xl font-black text-gray-900">0</h4>
+            </div>
         </div>
-        <!-- Compact live search bar on the right side -->
-        <div class="w-full sm:w-80 relative">
-            <input type="text" id="rider-orders-search" oninput="handleRiderSearch(this.value)" placeholder="🔍 Search Order #ID, restaurant, address..." class="w-full bg-white border border-gray-200 rounded-2xl px-4 py-2.5 text-xs font-medium focus:ring-2 focus:ring-orange-500 outline-none shadow-sm transition">
-            <span id="rider-search-clear" onclick="clearRiderSearch()" class="hidden absolute right-3 top-2.5 text-xs text-gray-400 hover:text-gray-700 cursor-pointer font-bold">✕</span>
+
+        <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center text-2xl shrink-0">
+                🍽️
+            </div>
+            <div>
+                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Ready for Pickup</p>
+                <h4 id="kpi-available-count" class="text-2xl font-black text-gray-900">0</h4>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shrink-0">
+                ✅
+            </div>
+            <div>
+                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Delivered Trips</p>
+                <h4 id="kpi-history-count" class="text-2xl font-black text-emerald-600">0</h4>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center text-2xl shrink-0">
+                💰
+            </div>
+            <div class="min-w-0">
+                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Trip Earnings</p>
+                <h4 id="kpi-earnings-total" class="text-xl font-black text-gray-900 truncate">Rs. 0.00</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Filter & Search Toolbar -->
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+        <div>
+            <h2 class="text-xl font-black text-gray-900">Dispatch & Delivery Queue</h2>
+            <p class="text-xs text-gray-500">Live order status, ready pickups, and completed trip history</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+            <!-- Filter Tabs -->
+            <div class="flex items-center gap-1.5 bg-gray-100/80 p-1 rounded-2xl border border-gray-200/60 overflow-x-auto text-xs font-bold">
+                <button onclick="setRiderSectionFilter('ALL')" id="tab-rider-ALL" class="px-3.5 py-2 rounded-xl transition bg-white text-gray-900 shadow-xs">
+                    All Sections
+                </button>
+                <button onclick="setRiderSectionFilter('ACTIVE')" id="tab-rider-ACTIVE" class="px-3.5 py-2 rounded-xl transition text-gray-600 hover:text-gray-900">
+                    🛵 In Transit (<span id="tab-count-active">0</span>)
+                </button>
+                <button onclick="setRiderSectionFilter('AVAILABLE')" id="tab-rider-AVAILABLE" class="px-3.5 py-2 rounded-xl transition text-gray-600 hover:text-gray-900">
+                    🍽️ Pickup (<span id="tab-count-available">0</span>)
+                </button>
+                <button onclick="setRiderSectionFilter('HISTORY')" id="tab-rider-HISTORY" class="px-3.5 py-2 rounded-xl transition text-gray-600 hover:text-gray-900">
+                    📜 History (<span id="tab-count-history">0</span>)
+                </button>
+            </div>
+
+            <!-- Compact live search bar -->
+            <div class="w-full sm:w-72 relative">
+                <input type="text" id="rider-orders-search" oninput="handleRiderSearch(this.value)" placeholder="🔍 Search #ID, restaurant, address..." class="w-full bg-white border border-gray-200 rounded-2xl px-4 py-2 text-xs font-medium focus:ring-2 focus:ring-orange-500 outline-none shadow-sm transition">
+                <span id="rider-search-clear" onclick="clearRiderSearch()" class="hidden absolute right-3 top-2 text-xs text-gray-400 hover:text-gray-700 cursor-pointer font-bold">✕</span>
+            </div>
         </div>
     </div>
 
     <!-- Active Deliveries Section (Priority) -->
-    <div class="mb-12">
+    <div id="section-active" class="mb-12">
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
                 <h3 class="text-2xl font-black text-gray-900">My Active Deliveries</h3>
@@ -102,7 +164,7 @@
     </div>
 
     <!-- Available for Pickup Section -->
-    <div>
+    <div id="section-available" class="mb-12">
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
                 <h3 class="text-2xl font-black text-gray-900">Available Orders for Pickup</h3>
@@ -112,6 +174,63 @@
         </div>
         <div id="available-container" class="space-y-4">
             <p class="text-gray-400 font-medium animate-pulse">Scanning for kitchen-ready orders...</p>
+        </div>
+    </div>
+
+    <!-- Delivery Order History Section (Completed Trips) -->
+    <div id="section-history" class="mb-12 bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-gray-100 mb-4">
+            <div>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <h3 class="text-2xl font-black text-gray-900">📜 Delivery Order History</h3>
+                    <span id="history-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-800">0 Delivered</span>
+                    <span id="history-earnings-pill" class="text-xs font-black text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                        💰 Rs. 0.00 Earned
+                    </span>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">
+                    Complete records of your delivered customer orders, trip receipts, and earned delivery fees.
+                </p>
+            </div>
+
+            <!-- Controls: Dropdown Limit Selector + PDF Download -->
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+                <div class="flex items-center gap-2 bg-gray-50 px-3.5 py-2 rounded-2xl border border-gray-200 text-xs shadow-xs">
+                    <span class="text-gray-400">🔽</span>
+                    <label for="history-display-limit" class="font-bold text-gray-600 whitespace-nowrap">Show:</label>
+                    <select id="history-display-limit" onchange="handleHistoryLimitChange(this.value)" class="bg-transparent font-black text-gray-900 outline-none cursor-pointer">
+                        <option value="3">Last 3 Orders</option>
+                        <option value="5" selected>Last 5 Orders</option>
+                        <option value="10">Last 10 Orders</option>
+                        <option value="20">Last 20 Orders</option>
+                        <option value="ALL">View All Orders</option>
+                    </select>
+                </div>
+
+                <button onclick="downloadRiderDeliveriesPdf(event)" class="bg-white hover:bg-orange-50 text-gray-700 hover:text-orange-600 border border-gray-200 hover:border-orange-200 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs">
+                    <span>📑</span> Export History PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Showing info sub-bar with quick 'View All' toggle -->
+        <div id="history-showing-info" class="flex items-center justify-between text-xs text-gray-500 mb-4 px-1 pb-2 border-b border-gray-50">
+            <span id="history-showing-text" class="font-medium">Loading history...</span>
+            <button id="history-toggle-viewall-btn" onclick="toggleHistoryViewAll()" class="text-orange-600 hover:text-orange-700 font-bold transition hover:underline">
+                View All Deliveries
+            </button>
+        </div>
+
+        <div id="history-container" class="space-y-4">
+            <p class="text-gray-400 font-medium animate-pulse text-sm text-center py-4">Loading delivered orders history...</p>
+        </div>
+
+        <!-- Bottom Show More / Show Less bar -->
+        <div id="history-bottom-bar" class="mt-6 pt-4 border-t border-gray-100 flex justify-center items-center hidden">
+            <button id="history-bottom-toggle-btn" onclick="toggleHistoryViewAll()" class="px-5 py-2.5 bg-gray-100 hover:bg-orange-500 hover:text-white text-gray-800 text-xs font-bold rounded-2xl transition flex items-center gap-2 shadow-xs group">
+                <span id="history-bottom-btn-icon">👁️</span>
+                <span id="history-bottom-btn-text">View All Deliveries</span>
+            </button>
         </div>
     </div>
 
@@ -202,6 +321,35 @@
     </div>
 </div>
 
+<!-- Single Order Trip Receipt Modal -->
+<div id="tripReceiptModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 border border-gray-100 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center text-xl font-bold">
+                    🧾
+                </div>
+                <div>
+                    <h3 class="text-lg font-black text-gray-900">Delivery Trip Manifest</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">Official CraveBite Delivery Record</p>
+                </div>
+            </div>
+            <button onclick="closeTripReceiptModal()" class="text-gray-400 hover:text-gray-900 text-2xl font-bold">&times;</button>
+        </div>
+
+        <div id="tripReceiptContent" class="space-y-4">
+            <!-- Dynamically populated -->
+        </div>
+
+        <div class="flex justify-between items-center pt-5 mt-6 border-t border-gray-100">
+            <button onclick="closeTripReceiptModal()" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition">Close</button>
+            <button onclick="printTripReceipt()" class="px-5 py-2.5 bg-gray-900 hover:bg-orange-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow">
+                <span>🖨️</span> Print Slip
+            </button>
+        </div>
+    </div>
+</div>
+
 <footer class="bg-gray-900 py-8 text-gray-400 mt-20">
     <div class="max-w-7xl mx-auto px-4 text-center text-xs">
         <p>&copy; 2026 CraveBite Inc. Rider Logistics Network.</p>
@@ -226,7 +374,10 @@
     let registeredVehicles = [];
     let rawMineOrders = [];
     let rawAvailableOrders = [];
+    let rawHistoryOrders = [];
+    let activeSectionFilter = 'ALL';
     let currentSearchQuery = '';
+    let historyDisplayLimit = '5';
 
     const resolveImg = u => !u ? '' : (u.startsWith('/') && window.location.port !== '8080' ? 'http://localhost:8080' + u : u);
 
@@ -455,10 +606,11 @@
     }
 
     function renderOrderItemsHtml(o) {
-        if (o.items && o.items.length) {
+        const items = o.items || o.itemsList || [];
+        if (items && items.length) {
             return `
                 <div class="space-y-1.5">
-                    ${o.items.map(item => {
+                    ${items.map(item => {
                         let imgTag = item.imageUrl 
                             ? `<img src="${resolveImg(item.imageUrl)}" alt="${item.name}" class="w-9 h-9 rounded-lg object-cover border border-gray-200 shrink-0 shadow-xs" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=60'">`
                             : `<div class="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center text-sm shrink-0">🍛</div>`;
@@ -476,6 +628,42 @@
             `;
         }
         return `<p class="text-xs text-gray-600"><strong>📦 Items:</strong> ${o.itemsSummary || 'Food items'}</p>`;
+    }
+
+    function setRiderSectionFilter(filterName) {
+        activeSectionFilter = filterName;
+        const tabs = ['ALL', 'ACTIVE', 'AVAILABLE', 'HISTORY'];
+        tabs.forEach(t => {
+            const btn = document.getElementById(`tab-rider-${t}`);
+            if (!btn) return;
+            if (t === filterName) {
+                btn.className = 'px-3.5 py-2 rounded-xl transition bg-white text-gray-900 shadow-xs font-bold';
+            } else {
+                btn.className = 'px-3.5 py-2 rounded-xl transition text-gray-600 hover:text-gray-900 font-bold';
+            }
+        });
+
+        const activeSec = document.getElementById('section-active');
+        const availSec = document.getElementById('section-available');
+        const histSec = document.getElementById('section-history');
+
+        if (filterName === 'ALL') {
+            if (activeSec) activeSec.classList.remove('hidden');
+            if (availSec) availSec.classList.remove('hidden');
+            if (histSec) histSec.classList.remove('hidden');
+        } else if (filterName === 'ACTIVE') {
+            if (activeSec) activeSec.classList.remove('hidden');
+            if (availSec) availSec.classList.add('hidden');
+            if (histSec) histSec.classList.add('hidden');
+        } else if (filterName === 'AVAILABLE') {
+            if (activeSec) activeSec.classList.add('hidden');
+            if (availSec) availSec.classList.remove('hidden');
+            if (histSec) histSec.classList.add('hidden');
+        } else if (filterName === 'HISTORY') {
+            if (activeSec) activeSec.classList.add('hidden');
+            if (availSec) availSec.classList.add('hidden');
+            if (histSec) histSec.classList.remove('hidden');
+        }
     }
 
     function handleRiderSearch(query) {
@@ -500,23 +688,54 @@
         const idMatch = String(o.id || '').toLowerCase().includes(q);
         const restMatch = (o.restaurantName || '').toLowerCase().includes(q);
         const custMatch = (o.customerName || '').toLowerCase().includes(q);
+        const phoneMatch = (o.customerPhone || '').toLowerCase().includes(q);
         const addrMatch = (o.deliveryAddress || '').toLowerCase().includes(q);
         const itemsMatch = (o.itemsSummary || '').toLowerCase().includes(q);
-        const dishMatch = o.items ? o.items.some(i => (i.name || '').toLowerCase().includes(q)) : false;
-        return idMatch || restMatch || custMatch || addrMatch || itemsMatch || dishMatch;
+        const itemsArr = o.items || o.itemsList || [];
+        const dishMatch = itemsArr.some(i => (i.name || '').toLowerCase().includes(q));
+        return idMatch || restMatch || custMatch || phoneMatch || addrMatch || itemsMatch || dishMatch;
     }
 
     function filterAndRenderOrders() {
         const myContainer = document.getElementById('my-container');
         const availableContainer = document.getElementById('available-container');
+        const historyContainer = document.getElementById('history-container');
 
         const filteredMine = rawMineOrders.filter(filterOrder);
         const filteredAvailable = rawAvailableOrders.filter(o => !skippedOrderIds.has(o.id)).filter(filterOrder);
+        const filteredHistory = rawHistoryOrders.filter(filterOrder);
 
-        document.getElementById('active-count-badge').innerText = `${filteredMine.length} In Transit`;
-        document.getElementById('available-count-badge').innerText = `${filteredAvailable.length} Ready`;
+        // Update Top KPIs
+        const kpiActive = document.getElementById('kpi-active-count');
+        const kpiAvailable = document.getElementById('kpi-available-count');
+        const kpiHistory = document.getElementById('kpi-history-count');
+        const kpiEarnings = document.getElementById('kpi-earnings-total');
+        const historyEarningsPill = document.getElementById('history-earnings-pill');
 
-        // Render Active Deliveries
+        const totalEarnings = rawHistoryOrders.length * 350.0;
+        if (kpiActive) kpiActive.innerText = rawMineOrders.length;
+        if (kpiAvailable) kpiAvailable.innerText = rawAvailableOrders.length;
+        if (kpiHistory) kpiHistory.innerText = rawHistoryOrders.length;
+        if (kpiEarnings) kpiEarnings.innerText = 'Rs. ' + totalEarnings.toFixed(2);
+        if (historyEarningsPill) historyEarningsPill.innerText = `💰 Rs. ${totalEarnings.toFixed(2)} Earned`;
+
+        // Update Tab badge counts
+        const tabActive = document.getElementById('tab-count-active');
+        const tabAvail = document.getElementById('tab-count-available');
+        const tabHist = document.getElementById('tab-count-history');
+        if (tabActive) tabActive.innerText = filteredMine.length;
+        if (tabAvail) tabAvail.innerText = filteredAvailable.length;
+        if (tabHist) tabHist.innerText = filteredHistory.length;
+
+        // Update Section badges
+        const activeBadge = document.getElementById('active-count-badge');
+        const availBadge = document.getElementById('available-count-badge');
+        const histBadge = document.getElementById('history-count-badge');
+        if (activeBadge) activeBadge.innerText = `${filteredMine.length} In Transit`;
+        if (availBadge) availBadge.innerText = `${filteredAvailable.length} Ready`;
+        if (histBadge) histBadge.innerText = `${filteredHistory.length} Delivered`;
+
+        // 1. Render Active Deliveries
         if (!filteredMine.length) {
             myContainer.innerHTML = `
                 <div class="bg-white p-8 rounded-3xl border border-gray-100 text-center shadow-sm">
@@ -570,7 +789,7 @@
             }).join('');
         }
 
-        // Render Available Orders
+        // 2. Render Available Orders
         if (!filteredAvailable.length) {
             availableContainer.innerHTML = `
                 <div class="bg-white p-8 rounded-3xl border border-gray-100 text-center shadow-sm">
@@ -623,20 +842,166 @@
                 `;
             }).join('');
         }
+
+        // 3. Render Delivery Order History (Completed Deliveries)
+        if (historyContainer) {
+            const showingInfo = document.getElementById('history-showing-info');
+            const showingText = document.getElementById('history-showing-text');
+            const toggleBtn = document.getElementById('history-toggle-viewall-btn');
+            const bottomBar = document.getElementById('history-bottom-bar');
+            const bottomBtnText = document.getElementById('history-bottom-btn-text');
+            const bottomBtnIcon = document.getElementById('history-bottom-btn-icon');
+
+            if (!filteredHistory.length) {
+                if (showingInfo) showingInfo.classList.add('hidden');
+                if (bottomBar) bottomBar.classList.add('hidden');
+                historyContainer.innerHTML = `
+                    <div class="bg-gray-50 p-8 rounded-3xl border border-dashed border-gray-200 text-center">
+                        <span class="text-4xl block mb-2">📜</span>
+                        <h4 class="font-bold text-gray-800 text-base">${currentSearchQuery ? 'No delivered orders matching search' : 'No completed deliveries yet'}</h4>
+                        <p class="text-xs text-gray-400 mt-1">${currentSearchQuery ? 'Try clearing or changing your search terms.' : 'Orders you mark as delivered will be preserved here in your official trip log.'}</p>
+                    </div>
+                `;
+            } else {
+                const totalCount = filteredHistory.length;
+                let visibleHistory = filteredHistory;
+                let isTruncated = false;
+
+                if (historyDisplayLimit !== 'ALL') {
+                    const limit = parseInt(historyDisplayLimit, 10);
+                    if (!isNaN(limit) && limit < totalCount) {
+                        visibleHistory = filteredHistory.slice(0, limit);
+                        isTruncated = true;
+                    }
+                }
+
+                // Update sub-bar text & View All buttons
+                if (showingInfo && showingText) {
+                    showingInfo.classList.remove('hidden');
+                    if (isTruncated) {
+                        showingText.innerText = `Showing latest ${visibleHistory.length} of ${totalCount} completed deliveries`;
+                        if (toggleBtn) {
+                            toggleBtn.classList.remove('hidden');
+                            toggleBtn.innerText = `View All (${totalCount}) ➔`;
+                        }
+                        if (bottomBar) bottomBar.classList.remove('hidden');
+                        if (bottomBtnText) bottomBtnText.innerText = `View All (${totalCount}) Deliveries ➔`;
+                        if (bottomBtnIcon) bottomBtnIcon.innerText = `👁️`;
+                    } else {
+                        showingText.innerText = `Showing all ${totalCount} completed deliveries`;
+                        if (totalCount > 5) {
+                            if (toggleBtn) {
+                                toggleBtn.classList.remove('hidden');
+                                toggleBtn.innerText = `Show Less (Collapse)`;
+                            }
+                            if (bottomBar) {
+                                bottomBar.classList.remove('hidden');
+                                if (bottomBtnText) bottomBtnText.innerText = `Show Less (Collapse to 5)`;
+                                if (bottomBtnIcon) bottomBtnIcon.innerText = `▲`;
+                            }
+                        } else {
+                            if (toggleBtn) toggleBtn.classList.add('hidden');
+                            if (bottomBar) bottomBar.classList.add('hidden');
+                        }
+                    }
+                }
+
+                historyContainer.innerHTML = visibleHistory.map(o => {
+                    const destination = o.deliveryAddress || 'Standard Delivery Address';
+                    const mapsUrl = getGoogleMapsUrl(destination);
+                    const formattedDate = o.orderDate 
+                        ? new Date(o.orderDate).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) 
+                        : 'Completed';
+
+                    return `
+                        <div class="bg-gray-50/70 hover:bg-gray-50 p-6 rounded-3xl border border-gray-100 hover:border-emerald-200 transition">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-gray-200/60 gap-2 mb-4">
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h4 class="text-lg font-black text-gray-900">Order #${o.id}</h4>
+                                        <span class="px-3 py-0.5 text-xs font-black rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                                            <span>✓</span> Delivered & Completed
+                                        </span>
+                                        <span class="text-xs text-gray-400 font-medium">🕒 ${formattedDate}</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        Kitchen: <strong class="text-gray-800">${o.restaurantName}</strong> ➔ Customer: <strong class="text-gray-800">${o.customerName}</strong>
+                                    </p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="flex items-center gap-2 justify-end">
+                                        <span class="text-xs font-bold text-gray-400 uppercase">Paid:</span>
+                                        <span class="text-base font-black text-gray-900">Rs. ${(o.totalAmount || 0).toFixed(2)}</span>
+                                    </div>
+                                    <span class="inline-block text-[11px] font-black text-emerald-700 bg-emerald-100/70 px-2.5 py-0.5 rounded-lg mt-0.5">
+                                        + Rs. 350.00 Delivery Fee
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-2xl border border-gray-100 mb-4 space-y-2">
+                                ${renderOrderItemsHtml(o)}
+                                <p class="text-xs text-gray-700"><strong>📍 Drop-off Destination:</strong> ${destination}</p>
+                                <p class="text-xs text-gray-600"><strong>👤 Customer:</strong> ${o.customerName} | <strong>📞 Phone:</strong> ${o.customerPhone || 'N/A'}</p>
+                            </div>
+
+                            <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+                                <a href="${mapsUrl}" target="_blank" class="px-3 py-2 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs">
+                                    <span>🗺️</span> View Delivery Map
+                                </a>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="viewTripReceipt(${o.id})" class="px-4 py-2 bg-gray-900 hover:bg-orange-500 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1.5">
+                                        <span>🧾</span> View Trip Manifest
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+    }
+
+    function handleHistoryLimitChange(val) {
+        historyDisplayLimit = val;
+        filterAndRenderOrders();
+    }
+
+    function toggleHistoryViewAll() {
+        const select = document.getElementById('history-display-limit');
+        if (historyDisplayLimit === 'ALL') {
+            historyDisplayLimit = '5';
+            if (select) select.value = '5';
+        } else {
+            historyDisplayLimit = 'ALL';
+            if (select) select.value = 'ALL';
+        }
+        filterAndRenderOrders();
     }
 
     function loadOrders() {
-        fetch(`http://localhost:8080/api/orders/tracking?username=${encodeURIComponent(username)}`)
-            .then(r => r.json())
-            .then(data => {
-                rawMineOrders = data.myDeliveries || [];
-                rawAvailableOrders = data.availableOrders || [];
-                filterAndRenderOrders();
-            })
-            .catch(err => {
-                console.error(err);
-                document.getElementById('available-container').innerHTML = `<div class="bg-white p-8 rounded-2xl text-red-500 text-center">Failed to load orders.</div>`;
-            });
+        Promise.all([
+            fetch(`http://localhost:8080/api/orders/tracking?username=${encodeURIComponent(username)}`).then(r => r.json()),
+            fetch(`http://localhost:8080/api/orders/history?username=${encodeURIComponent(username)}`).then(r => r.json()).catch(() => [])
+        ])
+        .then(([trackingData, historyData]) => {
+            rawMineOrders = trackingData.myDeliveries || [];
+            rawAvailableOrders = trackingData.availableOrders || [];
+
+            let historyList = [];
+            if (Array.isArray(trackingData.deliveredOrders) && trackingData.deliveredOrders.length) {
+                historyList = trackingData.deliveredOrders;
+            } else if (Array.isArray(historyData)) {
+                historyList = historyData.filter(o => (o.orderStatus || o.status) === 'DELIVERED');
+            }
+            rawHistoryOrders = historyList;
+            filterAndRenderOrders();
+        })
+        .catch(err => {
+            console.error('Failed to load orders:', err);
+            const avail = document.getElementById('available-container');
+            if (avail) avail.innerHTML = `<div class="bg-white p-8 rounded-2xl text-red-500 text-center">Failed to load orders.</div>`;
+        });
     }
 
     function skipOrder(orderId) {
@@ -658,6 +1023,11 @@
             if (data.error) {
                 alert(data.error);
             } else {
+                if (nextStatus === 'DELIVERED') {
+                    if (window.Notify) {
+                        Notify.success('Delivered! 🎉', `Order #${orderId} marked as delivered and saved to your history.`);
+                    }
+                }
                 loadOrders();
             }
         })
@@ -665,6 +1035,104 @@
             console.error(err);
             alert('Failed to update delivery');
         });
+    }
+
+    function viewTripReceipt(orderId) {
+        const o = rawHistoryOrders.find(item => item.id == orderId) || rawMineOrders.find(item => item.id == orderId);
+        if (!o) return;
+
+        const formattedDate = o.orderDate 
+            ? new Date(o.orderDate).toLocaleString() 
+            : new Date().toLocaleString();
+
+        const items = o.items || o.itemsList || [];
+        const itemsHtml = items.length ? items.map(item => `
+            <div class="flex justify-between items-center py-1.5 border-b border-gray-100 text-xs">
+                <span class="font-bold text-gray-800">${item.quantity}x ${item.name}</span>
+                <span class="font-mono text-gray-700 font-bold">${item.price ? 'Rs. ' + Number(item.price).toFixed(2) : '-'}</span>
+            </div>
+        `).join('') : `<p class="text-xs text-gray-500">${o.itemsSummary || 'Standard order items'}</p>`;
+
+        document.getElementById('tripReceiptContent').innerHTML = `
+            <div id="printableReceipt" class="space-y-4">
+                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200/80 space-y-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-gray-500 uppercase tracking-wider">Manifest ID:</span>
+                        <span class="font-mono font-bold text-gray-900">CB-DLV-#${o.id}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-gray-500 uppercase tracking-wider">Delivery Date:</span>
+                        <span class="font-medium text-gray-800">${formattedDate}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-gray-500 uppercase tracking-wider">Delivery Rider:</span>
+                        <span class="font-bold text-orange-600">@${username}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-gray-500 uppercase tracking-wider">Status:</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800">✓ DELIVERED</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2 text-xs">
+                    <p class="text-gray-500"><strong>Kitchen Partner:</strong> <span class="text-gray-900 font-bold">${o.restaurantName}</span></p>
+                    <p class="text-gray-500"><strong>Customer Name:</strong> <span class="text-gray-900 font-bold">${o.customerName}</span></p>
+                    <p class="text-gray-500"><strong>Contact Phone:</strong> <span class="text-gray-900 font-bold">${o.customerPhone || 'N/A'}</span></p>
+                    <p class="text-gray-500"><strong>Destination Address:</strong> <span class="text-gray-900 font-bold">${o.deliveryAddress || 'Standard Delivery Address'}</span></p>
+                </div>
+
+                <div class="pt-2">
+                    <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Itemized Order Manifest</span>
+                    <div class="bg-white p-3 rounded-xl border border-gray-200 space-y-1">
+                        ${itemsHtml}
+                    </div>
+                </div>
+
+                <div class="bg-orange-50/60 p-4 rounded-2xl border border-orange-100 space-y-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-gray-600">Order Subtotal:</span>
+                        <span class="font-black text-gray-900 text-sm">Rs. ${(o.totalAmount || 0).toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs pt-1 border-t border-orange-200/60">
+                        <span class="font-bold text-emerald-700">Rider Delivery Fee:</span>
+                        <span class="font-black text-emerald-700 text-sm">Rs. 350.00</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('tripReceiptModal').classList.remove('hidden');
+    }
+
+    function closeTripReceiptModal() {
+        document.getElementById('tripReceiptModal').classList.add('hidden');
+    }
+
+    function printTripReceipt() {
+        const content = document.getElementById('printableReceipt');
+        if (!content) return;
+        const printWindow = window.open('', '', 'width=650,height=750');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>CraveBite Delivery Manifest</title>
+                    <style>
+                        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 24px; color: #111; }
+                        h2 { margin: 0 0 6px 0; color: #ea580c; }
+                        p { margin: 4px 0; font-size: 13px; }
+                        .box { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin: 12px 0; background: #f9fafb; }
+                        .line { display: flex; justify-content: space-between; font-size: 13px; margin: 4px 0; }
+                    </style>
+                </head>
+                <body>
+                    <h2>🍔 CraveBite Rider Delivery Manifest</h2>
+                    <p style="color: #666; font-size: 12px; margin-bottom: 16px;">Official Proof of Delivery Record</p>
+                    \${content.innerHTML}
+                    <script>window.onload = function() { window.print(); window.close(); }<\/script>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
     }
 
     // Helper to dynamically ensure jsPDF and autotable are ready
