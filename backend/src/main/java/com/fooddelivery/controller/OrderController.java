@@ -65,10 +65,14 @@ public class OrderController {
             List<OrderRecord> myDeliveries = orderRepository.findByRiderOrderByOrderDateDesc(rider).stream()
                     .filter(order -> !order.getOrderStatus().equals("DELIVERED"))
                     .collect(Collectors.toList());
+            List<OrderRecord> deliveredOrders = orderRepository.findByRiderOrderByOrderDateDesc(rider).stream()
+                    .filter(order -> "DELIVERED".equals(order.getOrderStatus()))
+                    .collect(Collectors.toList());
 
             return ResponseEntity.ok(Map.of(
                 "availableOrders", availableOrders.stream().map(this::orderToMap).collect(Collectors.toList()),
                 "myDeliveries", myDeliveries.stream().map(this::orderToMap).collect(Collectors.toList()),
+                "deliveredOrders", deliveredOrders.stream().map(this::orderToMap).collect(Collectors.toList()),
                 "role", "RIDER"
             ));
         }
@@ -451,6 +455,7 @@ public class OrderController {
         }
 
         map.put("itemsList", itemsList);
+        map.put("items", itemsList);
 
         return map;
     }
