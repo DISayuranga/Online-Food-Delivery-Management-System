@@ -1,3 +1,4 @@
+
 package com.fooddelivery.model;
 
 import jakarta.persistence.DiscriminatorValue;
