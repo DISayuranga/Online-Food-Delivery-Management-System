@@ -127,5 +127,61 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
+    @PostMapping("/edit/{id}")
+    public ResponseEntity<?> editProduct(@PathVariable Long id,
+                                         @RequestParam String username,
+                                         @RequestParam String name,
+                                         @RequestParam String description,
+                                         @RequestParam double basePrice,
+                                         @RequestParam(required = false) String imageUrl,
+                                         @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+                                         @RequestParam(defaultValue = "true") boolean available) {
+        RestaurantOwner owner = getOwner(username);
+        if (owner == null) return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+
+        FoodItem product = foodItemRepository.findById(id).orElse(null);
+        if (product == null || !product.getOwner().getId().equals(owner.getId())) {
+            return ResponseEntity.status(404).body(Map.of("error", "Product not found or unauthorized"));
+        }
+
+        // Process device image upload if provided
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try {
+                String originalFilename = imageFile.getOriginalFilename();
+                String ext = ".jpg";
+                if (originalFilename != null && originalFilename.lastIndexOf(".") > 0) {
+                    ext = originalFilename.substring(originalFilename.lastIndexOf("."));
+                }
+                String filename = "dish_" + System.currentTimeMillis() + ext;
+                byte[] bytes = imageFile.getBytes();
+
+                File[] targetDirs = new File[] {
+                    new File("uploads"),
+                    new File("../frontend/uploads"),
+                    new File("frontend/uploads"),
+                    new File("target/classes/static/uploads")
+                };
+                for (File dir : targetDirs) {
+                    if (!dir.exists()) dir.mkdirs();
+                    File dest = new File(dir, filename);
+                    Files.write(dest.toPath(), bytes);
+                }
+                product.setImageUrl("/uploads/" + filename);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else if (imageUrl != null && !imageUrl.isEmpty()) {
+            product.setImageUrl(imageUrl);
+        }
+
+        product.setName(name);
+        product.setDescription(description);
+        product.setBasePrice(basePrice);
+        product.setAvailable(available);
+        foodItemRepository.save(product);
+
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
    
 }
