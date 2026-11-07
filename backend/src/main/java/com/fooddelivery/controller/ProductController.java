@@ -183,5 +183,23 @@ public class ProductController {
         return ResponseEntity.ok(Map.of("success", true));
     }
 
+    @PostMapping("/delete/{id}")
+    public ResponseEntity<?> deleteProduct(@PathVariable Long id, @RequestParam String username) {
+        RestaurantOwner owner = getOwner(username);
+        if (owner == null) return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+
+        FoodItem product = foodItemRepository.findById(id).orElse(null);
+        if (product == null || !product.getOwner().getId().equals(owner.getId())) {
+            return ResponseEntity.status(404).body(Map.of("error", "Product not found or unauthorized"));
+        }
+
+        // Clean up references before deleting to avoid foreign key constraint failure
+        cartItemRepository.deleteAll(cartItemRepository.findByFoodItem(product));
+        reviewRepository.deleteAll(reviewRepository.findByFoodItem(product));
+
+        foodItemRepository.delete(product);
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
    
 }
