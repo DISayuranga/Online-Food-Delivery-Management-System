@@ -115,5 +115,17 @@ public class ProductController {
         return ResponseEntity.ok(Map.of("success", true));
     }
 
+    @GetMapping("/edit/{id}")
+    public ResponseEntity<?> getProduct(@PathVariable Long id, @RequestParam String username) {
+        RestaurantOwner owner = getOwner(username);
+        if (owner == null) return ResponseEntity.status(401).body(Map.of("error", "Unauthorized"));
+
+        FoodItem product = foodItemRepository.findById(id).orElse(null);
+        if (product == null || !product.getOwner().getId().equals(owner.getId())) {
+            return ResponseEntity.status(404).body(Map.of("error", "Product not found or unauthorized"));
+        }
+        return ResponseEntity.ok(product);
+    }
+
    
 }
