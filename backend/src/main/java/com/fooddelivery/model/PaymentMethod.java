@@ -38,6 +38,9 @@ public abstract class PaymentMethod {
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
+    @Column(name = "is_default", nullable = false)
+    private boolean defaultPaymentMethod = false;
+
     // OOP: Polymorphism - Abstract method to process payment logic dynamically
     public abstract String processPayment(double amount);
 
@@ -52,6 +55,14 @@ public abstract class PaymentMethod {
             return "**** **** **** " + cardNumber.substring(cardNumber.length() - 4);
         }
         return "****";
+    }
+
+    public boolean isDefaultPaymentMethod() {
+        return defaultPaymentMethod;
+    }
+
+    public void setDefaultPaymentMethod(boolean defaultPaymentMethod) {
+        this.defaultPaymentMethod = defaultPaymentMethod;
     }
 
     // Getters and Setters
